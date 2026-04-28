@@ -1,13 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Home, Loader2, XCircle } from "lucide-react";
 
 type VerifyState = "verifying" | "success" | "error";
 
 export default function BookingSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <BookingSuccessContent />
+    </Suspense>
+  );
+}
+
+function BookingSuccessContent() {
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference");
 
@@ -162,6 +170,19 @@ export default function BookingSuccessPage() {
             </div>
           </>
         )}
+      </div>
+    </main>
+  );
+}
+
+function LoadingScreen() {
+  return (
+    <main className="min-h-screen bg-[#061116] px-5 py-14 text-white lg:px-8">
+      <div className="mx-auto max-w-4xl rounded-[2rem] border border-white/10 bg-white/5 p-6 text-center md:p-10">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-yellow-500/10">
+          <Loader2 className="h-10 w-10 animate-spin text-yellow-300" />
+        </div>
+        <h1 className="mt-6 text-3xl font-black">Loading...</h1>
       </div>
     </main>
   );
