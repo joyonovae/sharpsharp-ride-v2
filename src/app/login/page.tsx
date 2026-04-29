@@ -63,7 +63,7 @@ export default async function LoginPage({
               type="submit"
               className="h-12 w-full rounded-full bg-[#18c37e] font-bold text-[#04130c]"
             >
-              Send magic link
+              Send link
             </button>
           </form>
         </div>
