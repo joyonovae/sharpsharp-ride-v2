@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const reference = String(body.reference || "");
+    const reference = String(body.reference || "").trim();
 
     if (!reference) {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
 
     if (!secretKey) {
       return NextResponse.json(
-        { error: "Paystack secret key is missing" },
+        { error: "Paystack secret key is missing." },
         { status: 500 }
       );
     }
@@ -37,29 +37,43 @@ export async function POST(request: Request) {
 
     if (!verifyResponse.ok || verifyData?.data?.status !== "success") {
       return NextResponse.json(
-        { error: "Payment verification failed" },
+        { error: "Payment verification failed." },
         { status: 400 }
       );
     }
 
     const metadata = verifyData.data.metadata || {};
 
-    const rideId = String(metadata.rideId || "");
-    const userId = String(metadata.userId || "");
-    const fullName = String(metadata.fullName || "");
-    const phone = String(metadata.phone || "");
+    const rideId = String(metadata.rideId || "").trim();
+    const userId = String(metadata.userId || "").trim();
+    const fullName = String(metadata.fullName || "").trim();
+    const phone = String(metadata.phone || "").trim();
     const seats = Number(metadata.seats || 1);
 
     if (!rideId || !userId || !fullName || !phone || seats < 1) {
       return NextResponse.json(
-        { error: "Missing booking metadata" },
+        { error: "Missing booking metadata from Paystack." },
         { status: 400 }
       );
     }
 
     const admin = createAdminClient();
 
-    // ✅ Make sure user exists in profiles before booking insert
+    const { data: existingBooking } = await admin
+      .from("ride_bookings")
+      .select("id, ride_id, seats_booked")
+      .eq("payment_reference", reference)
+      .maybeSingle();
+
+    if (existingBooking) {
+      return NextResponse.json({
+        success: true,
+        reference,
+        rideId: existingBooking.ride_id,
+        seats: existingBooking.seats_booked,
+      });
+    }
+
     await admin.from("profiles").upsert(
       {
         id: userId,
@@ -69,21 +83,6 @@ export async function POST(request: Request) {
       { onConflict: "id" }
     );
 
-    const { data: existingBooking } = await admin
-      .from("ride_bookings")
-      .select("id")
-      .eq("payment_reference", reference)
-      .maybeSingle();
-
-    if (existingBooking) {
-      return NextResponse.json({
-        success: true,
-        reference,
-        rideId,
-        seats,
-      });
-    }
-
     const { data: ride, error: rideError } = await admin
       .from("rides")
       .select("id, available_seats, price_per_seat")
@@ -91,12 +90,14 @@ export async function POST(request: Request) {
       .single();
 
     if (rideError || !ride) {
-      return NextResponse.json({ error: "Ride not found" }, { status: 404 });
+      return NextResponse.json({ error: "Ride not found." }, { status: 404 });
     }
 
-    if (seats > Number(ride.available_seats)) {
+    const availableSeats = Number(ride.available_seats);
+
+    if (seats > availableSeats) {
       return NextResponse.json(
-        { error: `Only ${ride.available_seats} seat(s) available` },
+        { error: `Only ${availableSeats} seat(s) available.` },
         { status: 400 }
       );
     }
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
     const { error: seatError } = await admin
       .from("rides")
       .update({
-        available_seats: Number(ride.available_seats) - seats,
+        available_seats: availableSeats - seats,
       })
       .eq("id", rideId);
 
@@ -144,7 +145,7 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Server error" },
+      { error: error.message || "Server error." },
       { status: 500 }
     );
   }
