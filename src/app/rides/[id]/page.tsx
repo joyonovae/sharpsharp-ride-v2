@@ -1,9 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 type Ride = {
   id: string;
+  driver_id: string | null;
   from_city: string;
   to_city: string;
   travel_date: string;
@@ -12,14 +14,18 @@ type Ride = {
   available_seats: number;
   pickup_point: string | null;
   trip_notes: string | null;
+};
 
-  // NEW FIELDS
-  driver_name: string | null;
-  driver_phone: string | null;
+type DriverApplication = {
+  full_name: string | null;
+  phone: string | null;
+  car_type: string | null;
   vehicle_brand: string | null;
   vehicle_model: string | null;
   vehicle_color: string | null;
   plate_number: string | null;
+  seat_count: number | null;
+  vehicle_image_url: string | null;
 };
 
 export default async function RideDetailsPage({
@@ -45,6 +51,17 @@ export default async function RideDetailsPage({
     return notFound();
   }
 
+  const { data: driverApp } = ride.driver_id
+    ? await supabase
+        .from("driver_applications")
+        .select(
+          "full_name, phone, car_type, vehicle_brand, vehicle_model, vehicle_color, plate_number, seat_count, vehicle_image_url"
+        )
+        .eq("user_id", ride.driver_id)
+        .eq("status", "approved")
+        .maybeSingle<DriverApplication>()
+    : { data: null };
+
   const checkoutHref = `/checkout?type=ride&rideId=${ride.id}`;
 
   const bookRideHref = user
@@ -52,10 +69,8 @@ export default async function RideDetailsPage({
     : `/login?next=${encodeURIComponent(checkoutHref)}`;
 
   return (
-    <section className="px-5 py-10 lg:px-8 text-white">
-      <div className="mx-auto max-w-4xl space-y-6">
-
-        {/* MAIN RIDE CARD */}
+    <section className="px-5 py-10 text-white lg:px-8">
+      <div className="mx-auto max-w-5xl space-y-6">
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
           <h1 className="text-3xl font-semibold">
             {ride.from_city} → {ride.to_city}
@@ -73,7 +88,7 @@ export default async function RideDetailsPage({
             Seats left: {ride.available_seats}
           </p>
 
-          <p className="mt-4 text-xl font-semibold text-[#18c37e]">
+          <p className="mt-4 text-2xl font-black text-[#18c37e]">
             ₦{ride.price_per_seat}
           </p>
 
@@ -85,39 +100,49 @@ export default async function RideDetailsPage({
           )}
         </div>
 
-        {/* DRIVER + VEHICLE */}
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-xl font-semibold mb-4">
-            Driver & Vehicle Details
-          </h2>
+          <h2 className="text-2xl font-black">Driver & Vehicle Details</h2>
 
-          <div className="space-y-2 text-white/80">
-            <p>
-              <span className="font-semibold text-white">Driver:</span>{" "}
-              {ride.driver_name ?? "Not provided"}
-            </p>
+          {driverApp ? (
+            <div className="mt-6 grid gap-6 md:grid-cols-[1fr_0.9fr]">
+              <div className="space-y-4">
+                <Info label="Driver" value={driverApp.full_name} />
+                <Info label="Phone" value={driverApp.phone} />
+                <Info label="Vehicle Type" value={driverApp.car_type} />
+                <Info
+                  label="Vehicle"
+                  value={`${driverApp.vehicle_brand || ""} ${
+                    driverApp.vehicle_model || ""
+                  }`}
+                />
+                <Info label="Color" value={driverApp.vehicle_color} />
+                <Info label="Plate Number" value={driverApp.plate_number} />
+                <Info label="Total Seats" value={driverApp.seat_count} />
+              </div>
 
-            <p>
-              <span className="font-semibold text-white">Phone:</span>{" "}
-              {ride.driver_phone ?? "Not provided"}
-            </p>
-
-            <div className="mt-3">
-              <p className="font-semibold text-white">Vehicle</p>
-              <p className="text-white/70">
-                {ride.vehicle_brand ?? ""} {ride.vehicle_model ?? ""}
-                {ride.vehicle_color ? ` (${ride.vehicle_color})` : ""}
-              </p>
+              {driverApp.vehicle_image_url ? (
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                  <Image
+                    src={driverApp.vehicle_image_url}
+                    alt="Driver vehicle"
+                    width={700}
+                    height={450}
+                    className="h-full min-h-72 w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="flex min-h-72 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/50">
+                  No vehicle image
+                </div>
+              )}
             </div>
-
-            <p>
-              <span className="font-semibold text-white">Plate Number:</span>{" "}
-              {ride.plate_number ?? "Not provided"}
+          ) : (
+            <p className="mt-4 text-white/60">
+              Driver details are not available yet.
             </p>
-          </div>
+          )}
         </div>
 
-        {/* LOGIN NOTICE */}
         {!user && (
           <div className="rounded-2xl border border-[#18c37e]/20 bg-[#18c37e]/10 p-4 text-sm text-white/80">
             You can browse rides without logging in. Login is only required when
@@ -125,7 +150,6 @@ export default async function RideDetailsPage({
           </div>
         )}
 
-        {/* ACTION BUTTONS */}
         <div className="flex gap-4">
           <Link
             href="/rides"
@@ -141,8 +165,16 @@ export default async function RideDetailsPage({
             {user ? "Book Ride" : "Login to Book Ride"}
           </Link>
         </div>
-
       </div>
     </section>
+  );
+}
+
+function Info({ label, value }: { label: string; value: any }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <p className="text-sm text-white/45">{label}</p>
+      <p className="mt-1 font-bold text-white">{value || "Not provided"}</p>
+    </div>
   );
 }
