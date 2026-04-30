@@ -131,17 +131,17 @@ export default function Navbar() {
             }`}
           >
             <Image
-              src={NAV_LOGO}
-              alt="SharpSharp Ride logo"
-              width={320}
-              height={110}
-              className={`w-auto object-contain transition-all duration-300 ${
-                scrolled
-                  ? "h-16 drop-shadow-[0_0_6px_rgba(24,195,126,0.25)]"
-                  : "h-20 drop-shadow-[0_0_10px_rgba(24,195,126,0.35)] sm:h-24 lg:h-28"
-              }`}
-              priority
-            />
+  src={NAV_LOGO}
+  alt="SharpSharp Ride logo"
+  width={280}
+  height={95}
+  className={`w-auto object-contain transition-all duration-300 ${
+    scrolled
+      ? "h-14 drop-shadow-[0_0_6px_rgba(24,195,126,0.25)]"
+      : "h-16 drop-shadow-[0_0_10px_rgba(24,195,126,0.35)] sm:h-20 lg:h-24"
+  }`}
+  priority
+/>
           </div>
         </Link>
 
