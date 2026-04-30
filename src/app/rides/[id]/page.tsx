@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,6 +18,7 @@ type Ride = {
 type DriverApplication = {
   full_name: string | null;
   phone: string | null;
+  passport_photo_url: string | null;
   car_type: string | null;
   vehicle_brand: string | null;
   vehicle_model: string | null;
@@ -34,7 +34,6 @@ export default async function RideDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-
   const supabase = await createClient();
 
   const {
@@ -55,10 +54,12 @@ export default async function RideDetailsPage({
     ? await supabase
         .from("driver_applications")
         .select(
-          "full_name, phone, car_type, vehicle_brand, vehicle_model, vehicle_color, plate_number, seat_count, vehicle_image_url"
+          "full_name, phone, passport_photo_url, car_type, vehicle_brand, vehicle_model, vehicle_color, plate_number, seat_count, vehicle_image_url"
         )
         .eq("user_id", ride.driver_id)
         .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle<DriverApplication>()
     : { data: null };
 
@@ -69,10 +70,10 @@ export default async function RideDetailsPage({
     : `/login?next=${encodeURIComponent(checkoutHref)}`;
 
   return (
-    <section className="px-5 py-10 text-white lg:px-8">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h1 className="text-3xl font-semibold">
+    <section className="overflow-x-hidden px-5 py-10 text-white lg:px-8">
+      <div className="mx-auto w-full max-w-5xl space-y-6">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6">
+          <h1 className="break-words text-3xl font-semibold md:text-4xl">
             {ride.from_city} → {ride.to_city}
           </h1>
 
@@ -100,33 +101,69 @@ export default async function RideDetailsPage({
           )}
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-2xl font-black">Driver & Vehicle Details</h2>
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-5 md:p-6">
+          <h2 className="text-2xl font-black md:text-3xl">
+            Driver & Vehicle Details
+          </h2>
 
           {driverApp ? (
             <div className="mt-6 grid gap-6 md:grid-cols-[1fr_0.9fr]">
               <div className="space-y-4">
-                <Info label="Driver" value={driverApp.full_name} />
+                <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="h-16 w-16 overflow-hidden rounded-full border border-white/10 bg-white/10">
+                    {driverApp.passport_photo_url ? (
+                      <img
+                        src={driverApp.passport_photo_url}
+                        alt={driverApp.full_name || "Driver"}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xl font-black text-white/60">
+                        {(driverApp.full_name || "D").charAt(0)}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-sm text-white/45">Driver</p>
+                    <p className="font-bold text-white">
+                      {driverApp.full_name || "Approved Driver"}
+                    </p>
+                    <p className="mt-1 text-xs text-[#18c37e]">
+                      Approved Driver • Ratings coming soon
+                    </p>
+                  </div>
+                </div>
+
                 <Info label="Phone" value={driverApp.phone} />
                 <Info label="Vehicle Type" value={driverApp.car_type} />
+
                 <Info
                   label="Vehicle"
                   value={`${driverApp.vehicle_brand || ""} ${
                     driverApp.vehicle_model || ""
-                  }`}
+                  }`.trim()}
                 />
+
                 <Info label="Color" value={driverApp.vehicle_color} />
                 <Info label="Plate Number" value={driverApp.plate_number} />
                 <Info label="Total Seats" value={driverApp.seat_count} />
+
+                {ride.driver_id && (
+                  <Link
+                    href={`/drivers/${ride.driver_id}`}
+                    className="inline-flex h-12 items-center justify-center rounded-full border border-[#18c37e]/30 px-6 text-sm font-bold text-[#18c37e] hover:bg-[#18c37e]/10"
+                  >
+                    View Driver Profile
+                  </Link>
+                )}
               </div>
 
               {driverApp.vehicle_image_url ? (
                 <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
-                  <Image
+                  <img
                     src={driverApp.vehicle_image_url}
                     alt="Driver vehicle"
-                    width={700}
-                    height={450}
                     className="h-full min-h-72 w-full object-cover"
                   />
                 </div>
@@ -150,7 +187,7 @@ export default async function RideDetailsPage({
           </div>
         )}
 
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row">
           <Link
             href="/rides"
             className="inline-flex h-12 items-center justify-center rounded-full border border-white/10 px-6 text-sm font-semibold hover:border-[#18c37e]/40"
@@ -170,11 +207,13 @@ export default async function RideDetailsPage({
   );
 }
 
-function Info({ label, value }: { label: string; value: any }) {
+function Info({ label, value }: { label: string; value: unknown }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
       <p className="text-sm text-white/45">{label}</p>
-      <p className="mt-1 font-bold text-white">{value || "Not provided"}</p>
+      <p className="mt-1 break-words font-bold text-white">
+        {value ? String(value) : "Not provided"}
+      </p>
     </div>
   );
 }
