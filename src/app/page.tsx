@@ -146,7 +146,7 @@ export default function HomePage() {
       <section className="relative w-full max-w-full overflow-x-hidden bg-white text-[#061116]">
         <div className="absolute inset-0 bg-[linear-gradient(90deg,#f7fff9_0%,#ecfff6_48%,#dff6ff_100%)]" />
 
-        <div className="relative mx-auto grid w-full max-w-7xl items-center gap-8 px-4 pb-20 pt-12 sm:px-5 sm:pt-16 lg:min-h-[720px] lg:grid-cols-[0.95fr_1.05fr] lg:px-12 lg:pb-24 lg:pt-20">
+        <div className="relative mx-auto grid w-full max-w-7xl items-center gap-8 px-4 pb-16 pt-10 sm:px-5 sm:pt-12 lg:min-h-[680px] lg:grid-cols-[0.95fr_1.05fr] lg:px-12 lg:pb-20 lg:pt-14">
           <div className="scroll-reveal z-10">
             <p className="typing-text mb-4 h-6 max-w-full text-[0.68rem] font-bold uppercase tracking-[0.14em] text-emerald-600 sm:text-sm">
               Ride safely anywhere in Nigeria...
@@ -163,7 +163,7 @@ export default function HomePage() {
               Nigeria from one simple platform.
             </p>
 
-            <div className="mt-8 flex flex-wrap justify-center gap-3 sm:justify-start">
+            <div className="mt-8 flex flex-wrap justify-start gap-3">
               <Link
                 href="/rides"
                 className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6">

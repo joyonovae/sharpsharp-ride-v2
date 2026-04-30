@@ -117,7 +117,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#08141b]/95 shadow-lg backdrop-blur transition-all duration-300">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-5 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-5 lg:px-8">
         <Link href="/" onClick={closeMenus} className="flex items-center">
           <div
             className={`transition-all duration-300 ${
@@ -130,10 +130,10 @@ export default function Navbar() {
               width={280}
               height={95}
               className={`w-auto object-contain transition-all duration-300 ${
-                scrolled
-                  ? "h-14 drop-shadow-[0_0_6px_rgba(24,195,126,0.25)]"
-                  : "h-16 drop-shadow-[0_0_10px_rgba(24,195,126,0.35)] sm:h-20 lg:h-20"
-              }`}
+  scrolled
+    ? "h-12 drop-shadow-[0_0_6px_rgba(24,195,126,0.25)]"
+    : "h-14 drop-shadow-[0_0_10px_rgba(24,195,126,0.35)] sm:h-16 lg:h-18"
+}`}
               priority
             />
           </div>
