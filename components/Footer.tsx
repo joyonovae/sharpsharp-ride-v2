@@ -8,14 +8,17 @@ export default function Footer() {
   return (
     <footer className="border-t border-white/10 bg-[#061a2f] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
+        
+        {/* LOGO + DESCRIPTION */}
         <div>
           <Link href="/" className="inline-flex items-center">
             <Image
               src={FOOTER_LOGO}
               alt="SharpSharp Ride footer logo"
-              width={180}
-              height={56}
-              className="h-12 w-auto object-contain"
+              width={240}
+              height={100}
+              className="h-16 w-auto object-contain sm:h-18 lg:h-20 drop-shadow-[0_0_10px_rgba(24,195,126,0.35)] transition-all duration-300 hover:scale-105"
+              priority
             />
           </Link>
 
@@ -25,6 +28,7 @@ export default function Footer() {
           </p>
         </div>
 
+        {/* SERVICES */}
         <div>
           <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white/90">
             Services
@@ -37,6 +41,7 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* COMPANY */}
         <div>
           <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white/90">
             Company
@@ -49,6 +54,7 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* CONTACT */}
         <div>
           <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-white/90">
             Contact
@@ -70,6 +76,7 @@ export default function Footer() {
         </div>
       </div>
 
+      {/* BOTTOM */}
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-5 text-sm text-white/60 md:flex-row md:items-center md:justify-between lg:px-8">
           <p>© 2026 SharpSharp Ride. All rights reserved.</p>
