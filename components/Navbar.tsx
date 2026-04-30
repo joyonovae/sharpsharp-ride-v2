@@ -122,7 +122,7 @@ export default function Navbar() {
           : "border-transparent bg-transparent"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-5 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-5 lg:px-8">
         {/* LOGO */}
         <Link href="/" onClick={closeMenus} className="flex items-center">
           <div
@@ -131,6 +131,17 @@ export default function Navbar() {
             }`}
           >
             <Image
+  src={NAV_LOGO}
+  alt="SharpSharp Ride logo"
+  width={280}
+  height={95}
+  className={`w-auto object-contain transition-all duration-300 ${
+  scrolled
+    ? "h-14 drop-shadow-[0_0_6px_rgba(24,195,126,0.25)]"
+    : "h-16 drop-shadow-[0_0_10px_rgba(24,195,126,0.35)] sm:h-20 lg:h-20"
+}`}
+  priority
+/><Image
   src={NAV_LOGO}
   alt="SharpSharp Ride logo"
   width={280}

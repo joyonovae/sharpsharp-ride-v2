@@ -146,35 +146,33 @@ export default function HomePage() {
       <section className="relative w-full max-w-full overflow-x-hidden bg-white text-[#061116]">
         <div className="absolute inset-0 bg-[linear-gradient(90deg,#f7fff9_0%,#ecfff6_48%,#dff6ff_100%)]" />
 
-        <div className="relative mx-auto grid w-full max-w-7xl items-center gap-8 px-4 pb-24 pt-32 sm:px-5 sm:pt-36 lg:min-h-[720px] lg:grid-cols-[0.95fr_1.05fr] lg:px-12 lg:pb-24 lg:pt-32">
+        <div className="relative mx-auto grid w-full max-w-7xl items-center gap-8 px-4 pb-20 pt-36 sm:px-5 sm:pt-40 lg:min-h-[720px] lg:grid-cols-[0.95fr_1.05fr] lg:px-12 lg:pb-24 lg:pt-36">
           <div className="scroll-reveal z-10">
-            <p className="typing-text mb-4 h-6 text-xs font-bold uppercase tracking-[0.18em] text-emerald-600 sm:text-sm">
+            <p className="typing-text mb-4 h-6 max-w-full text-[0.68rem] font-bold uppercase tracking-[0.14em] text-emerald-600 sm:text-sm">
               Ride safely anywhere in Nigeria...
             </p>
 
-           <h1 className="max-w-3xl text-[2.75rem] font-black leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
+           <h1 className="max-w-3xl text-[2.55rem] font-black leading-[1.05] tracking-tight min-[390px]:text-[2.85rem] sm:text-6xl lg:text-7xl">
               Find Your Next
               <br />
               SharpSharp Ride
             </h1>
 
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl sm:leading-9">
+           <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 min-[390px]:text-lg min-[390px]:leading-8 sm:text-xl sm:leading-9">
               Book shared rides, rent available cars, and send packages across
               Nigeria from one simple platform.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap justify-center gap-3 sm:justify-start">
               <Link
                 href="/rides"
-                className="rounded-full bg-[#061116] px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600"
-              >
+                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6">
                 Shared Rides
               </Link>
 
               <Link
                 href="/rent"
-                className="rounded-full bg-[#061116] px-6 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600"
-              >
+                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6">
                 Car Rentals
               </Link>
 
@@ -182,7 +180,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative z-10 block h-[300px] w-full max-w-full overflow-hidden rounded-[2rem] shadow-2xl shadow-slate-900/20 sm:h-[360px] lg:h-full lg:rounded-bl-[5rem] lg:rounded-tl-none lg:rounded-tr-none">
+          <div className="relative z-10 mx-auto block h-[300px] w-full max-w-[420px] overflow-hidden rounded-[2rem] shadow-2xl shadow-slate-900/20 lg:h-full lg:max-w-none lg:rounded-bl-[5rem] lg:rounded-tl-none lg:rounded-tr-none">
             <Swiper
               modules={[Autoplay, EffectFade]}
               effect="fade"
@@ -196,7 +194,10 @@ export default function HomePage() {
                   <div className="h-full w-full overflow-hidden">
                     <div
                       className="h-full w-full scale-105 bg-cover bg-center transition-transform duration-[6000ms] ease-linear hover:scale-110"
-                      style={{ backgroundImage: `url('${slide}')` }}
+                      style={{
+  backgroundImage: `url('${slide}')`,
+  backgroundPosition: "center",
+}}
                     />
                   </div>
                 </SwiperSlide>
