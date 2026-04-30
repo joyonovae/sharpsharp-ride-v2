@@ -92,7 +92,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="overflow-hidden bg-[#061116] text-white">
+    <main className="w-full max-w-full overflow-x-hidden bg-[#061116] text-white">
       <style jsx global>{`
         .scroll-reveal {
           opacity: 0;
@@ -143,16 +143,16 @@ export default function HomePage() {
       `}</style>
 
       {/* HERO */}
-      <section className="relative overflow-hidden bg-white text-[#061116]">
+      <section className="relative w-full max-w-full overflow-x-hidden bg-white text-[#061116]">
         <div className="absolute inset-0 bg-[linear-gradient(90deg,#f7fff9_0%,#ecfff6_48%,#dff6ff_100%)]" />
 
-        <div className="relative mx-auto grid min-h-[760px] max-w-7xl items-center gap-8 px-5 pb-28 pt-24 lg:min-h-[720px] lg:grid-cols-[0.95fr_1.05fr] lg:px-12 lg:pb-24">
+        <div className="relative mx-auto grid w-full max-w-7xl items-center gap-8 px-4 pb-24 pt-32 sm:px-5 sm:pt-36 lg:min-h-[720px] lg:grid-cols-[0.95fr_1.05fr] lg:px-12 lg:pb-24 lg:pt-32">
           <div className="scroll-reveal z-10">
             <p className="typing-text mb-4 h-6 text-xs font-bold uppercase tracking-[0.18em] text-emerald-600 sm:text-sm">
-              Ride safely to anywhere in Nigeria...
+              Ride safely anywhere in Nigeria...
             </p>
 
-            <h1 className="max-w-3xl text-5xl font-black leading-tight tracking-tight sm:text-6xl lg:text-7xl">
+           <h1 className="max-w-3xl text-[2.75rem] font-black leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">
               Find Your Next
               <br />
               SharpSharp Ride
@@ -182,7 +182,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="relative z-10 block h-[300px] overflow-hidden rounded-bl-[3rem] rounded-tl-[2rem] rounded-tr-[2rem] shadow-2xl shadow-slate-900/20 lg:h-full lg:rounded-bl-[5rem] lg:rounded-tl-none lg:rounded-tr-none">
+          <div className="relative z-10 block h-[300px] w-full max-w-full overflow-hidden rounded-[2rem] shadow-2xl shadow-slate-900/20 sm:h-[360px] lg:h-full lg:rounded-bl-[5rem] lg:rounded-tl-none lg:rounded-tr-none">
             <Swiper
               modules={[Autoplay, EffectFade]}
               effect="fade"
@@ -207,7 +207,7 @@ export default function HomePage() {
 
             <div className="pointer-events-none absolute -top-6 right-10 z-20 h-28 w-28 rotate-45 rounded-[2rem] bg-lime-300/35 blur-[1px]" />
 
-            <div className="absolute bottom-6 left-5 right-5 z-30 rounded-3xl bg-white px-5 py-4 shadow-2xl sm:left-auto sm:right-8 sm:w-auto sm:px-6">
+            <div className="absolute bottom-5 left-4 right-4 z-30 rounded-3xl bg-white px-4 py-4 shadow-2xl sm:left-auto sm:right-8 sm:w-auto sm:px-6">
               <p className="font-bold text-slate-900">🚗 Lagos → Abuja</p>
               <p className="mt-1 text-sm text-slate-500">
                 Seats available today
@@ -216,7 +216,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="relative z-20 mx-auto -mt-16 max-w-6xl px-5 pb-16 lg:-mt-20 lg:px-12">
+        <div className="relative z-20 mx-auto -mt-12 w-full max-w-6xl px-4 pb-16 sm:px-5 lg:-mt-20 lg:px-12">
           <div className="scroll-reveal rounded-[2rem] bg-white/95 p-4 shadow-[0_25px_60px_rgba(0,0,0,0.15)] backdrop-blur-xl md:p-5">
             <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-center">
               <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4">

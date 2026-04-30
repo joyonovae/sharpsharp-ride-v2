@@ -11,7 +11,6 @@ type ProfileRow = {
 };
 
 const NAV_LOGO = "/logos/navbar-logo.png";
-
 const ADMIN_EMAILS = ["onovaejoy4@gmail.com", "sharpsharptaxi@gmail.com"];
 
 export default function Navbar() {
@@ -24,8 +23,21 @@ export default function Navbar() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // 🔥 NEW: scroll state
+  const [scrolled, setScrolled] = useState(false);
+
   const userEmail = user?.email?.toLowerCase() || "";
   const isAdmin = userRole === "admin" || ADMIN_EMAILS.includes(userEmail);
+
+  // 🔥 scroll listener
+  useEffect(() => {
+    function handleScroll() {
+      setScrolled(window.scrollY > 40);
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -89,12 +101,10 @@ export default function Navbar() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-
     setUser(null);
     setUserRole(null);
     setAccountOpen(false);
     setMobileOpen(false);
-
     router.replace("/");
     router.refresh();
   }
@@ -105,17 +115,34 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#08141b]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-5 lg:px-8">
+    <nav
+      className={`fixed left-0 right-0 top-0 z-50 border-b transition-all duration-300 ${
+        scrolled
+          ? "border-white/10 bg-[#08141b]/95 shadow-lg backdrop-blur"
+          : "border-transparent bg-transparent"
+      }`}
+    >
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-5 lg:px-8">
+        {/* LOGO */}
         <Link href="/" onClick={closeMenus} className="flex items-center">
-          <Image
-  src={NAV_LOGO}
-  alt="SharpSharp Ride logo"
-  width={260}
-  height={90}
-  className="h-16 w-auto object-contain sm:h-20 md:h-20 lg:h-24"
-  priority
-/>
+          <div
+            className={`transition-all duration-300 ${
+              scrolled ? "scale-[0.9]" : "scale-100"
+            }`}
+          >
+            <Image
+              src={NAV_LOGO}
+              alt="SharpSharp Ride logo"
+              width={320}
+              height={110}
+              className={`w-auto object-contain transition-all duration-300 ${
+                scrolled
+                  ? "h-16 drop-shadow-[0_0_6px_rgba(24,195,126,0.25)]"
+                  : "h-20 drop-shadow-[0_0_10px_rgba(24,195,126,0.35)] sm:h-24 lg:h-28"
+              }`}
+              priority
+            />
+          </div>
         </Link>
 
         {/* DESKTOP NAV */}
@@ -156,7 +183,6 @@ export default function Navbar() {
           {!loading && user ? (
             <div className="relative hidden md:block">
               <button
-                type="button"
                 onClick={() => setAccountOpen((prev) => !prev)}
                 className="rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-semibold text-white"
               >
@@ -165,37 +191,21 @@ export default function Navbar() {
 
               {accountOpen && (
                 <div className="absolute right-0 mt-2 w-52 rounded-xl border border-white/10 bg-[#0d1c24] p-3 shadow-lg">
-                  <Link
-                    href="/dashboard"
-                    onClick={closeMenus}
-                    className="block py-2 text-white hover:text-emerald-400"
-                  >
+                  <Link href="/dashboard" onClick={closeMenus} className="block py-2 text-white hover:text-emerald-400">
                     Dashboard
                   </Link>
 
-                  <Link
-                    href="/dashboard/bookings"
-                    onClick={closeMenus}
-                    className="block py-2 text-white hover:text-emerald-400"
-                  >
+                  <Link href="/dashboard/bookings" onClick={closeMenus} className="block py-2 text-white hover:text-emerald-400">
                     My Bookings
                   </Link>
 
                   {isAdmin && (
-                    <Link
-                      href="/admin/driver-applications"
-                      onClick={closeMenus}
-                      className="block py-2 text-white hover:text-red-400"
-                    >
+                    <Link href="/admin/driver-applications" onClick={closeMenus} className="block py-2 text-white hover:text-red-400">
                       Admin
                     </Link>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="mt-2 w-full text-left text-red-400"
-                  >
+                  <button onClick={handleLogout} className="mt-2 w-full text-left text-red-400">
                     Logout
                   </button>
                 </div>
@@ -203,28 +213,20 @@ export default function Navbar() {
             </div>
           ) : !loading ? (
             <div className="hidden items-center gap-3 md:flex">
-              <Link
-                href="/login"
-                className="rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-semibold text-white"
-              >
+              <Link href="/login" className="rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-semibold text-white">
                 Login
               </Link>
 
-              <Link
-                href="/signup"
-                className="rounded-full bg-[#18c37e] px-5 py-2 text-sm font-semibold text-[#04130c]"
-              >
+              <Link href="/signup" className="rounded-full bg-[#18c37e] px-5 py-2 text-sm font-semibold text-[#04130c]">
                 Get Started
               </Link>
             </div>
           ) : null}
 
-          {/* MOBILE HAMBURGER */}
+          {/* MOBILE MENU BUTTON */}
           <button
-            type="button"
             onClick={() => setMobileOpen((prev) => !prev)}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-2xl font-bold text-white md:hidden"
-            aria-label="Open menu"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-2xl text-white md:hidden"
           >
             {mobileOpen ? "×" : "☰"}
           </button>
@@ -235,75 +237,18 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="border-t border-white/10 bg-[#08141b] px-5 py-5 md:hidden">
           <div className="flex flex-col gap-4 text-base font-semibold">
-            <MobileLink href="/" onClick={closeMenus}>
-              Home
-            </MobileLink>
-
-            <MobileLink href="/rides" onClick={closeMenus}>
-              Book a Ride
-            </MobileLink>
-
-            <MobileLink href="/offer-a-ride" onClick={closeMenus}>
-              Offer a Ride
-            </MobileLink>
-
-            <MobileLink href="/rent" onClick={closeMenus}>
-              Rent a Car
-            </MobileLink>
-
-            <MobileLink href="/delivery" onClick={closeMenus}>
-              Delivery
-            </MobileLink>
-
-            <MobileLink href="/faq" onClick={closeMenus}>
-              FAQ
-            </MobileLink>
+            <MobileLink href="/" onClick={closeMenus}>Home</MobileLink>
+            <MobileLink href="/rides" onClick={closeMenus}>Book a Ride</MobileLink>
+            <MobileLink href="/offer-a-ride" onClick={closeMenus}>Offer a Ride</MobileLink>
+            <MobileLink href="/rent" onClick={closeMenus}>Rent a Car</MobileLink>
+            <MobileLink href="/delivery" onClick={closeMenus}>Delivery</MobileLink>
+            <MobileLink href="/faq" onClick={closeMenus}>FAQ</MobileLink>
 
             {isAdmin && (
               <MobileLink href="/admin/driver-applications" onClick={closeMenus}>
                 Admin
               </MobileLink>
             )}
-
-            <div className="mt-3 border-t border-white/10 pt-4">
-              {!loading && user ? (
-                <div className="flex flex-col gap-3">
-                  <MobileLink href="/dashboard" onClick={closeMenus}>
-                    Dashboard
-                  </MobileLink>
-
-                  <MobileLink href="/dashboard/bookings" onClick={closeMenus}>
-                    My Bookings
-                  </MobileLink>
-
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="rounded-full bg-red-500 px-5 py-3 text-left font-bold text-white"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : !loading ? (
-                <div className="flex flex-col gap-3">
-                  <Link
-                    href="/login"
-                    onClick={closeMenus}
-                    className="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-center font-bold text-white"
-                  >
-                    Login
-                  </Link>
-
-                  <Link
-                    href="/signup"
-                    onClick={closeMenus}
-                    className="rounded-full bg-[#18c37e] px-5 py-3 text-center font-bold text-[#04130c]"
-                  >
-                    Get Started
-                  </Link>
-                </div>
-              ) : null}
-            </div>
           </div>
         </div>
       )}
@@ -311,17 +256,7 @@ export default function Navbar() {
   );
 }
 
-function NavLink({
-  href,
-  children,
-  color,
-  bold,
-}: {
-  href: string;
-  children: React.ReactNode;
-  color: string;
-  bold?: boolean;
-}) {
+function NavLink({ href, children, color, bold }: any) {
   return (
     <Link
       href={href}
@@ -334,15 +269,7 @@ function NavLink({
   );
 }
 
-function MobileLink({
-  href,
-  children,
-  onClick,
-}: {
-  href: string;
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
+function MobileLink({ href, children, onClick }: any) {
   return (
     <Link
       href={href}
