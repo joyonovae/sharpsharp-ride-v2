@@ -106,16 +106,16 @@ export default function Navbar() {
 
   return (
     <nav className="fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#08141b]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-5 lg:px-8">
         <Link href="/" onClick={closeMenus} className="flex items-center">
           <Image
-            src={NAV_LOGO}
-            alt="SharpSharp Ride logo"
-            width={190}
-            height={64}
-            className="h-12 w-auto object-contain md:h-14"
-            priority
-          />
+  src={NAV_LOGO}
+  alt="SharpSharp Ride logo"
+  width={260}
+  height={90}
+  className="h-16 w-auto object-contain sm:h-20 md:h-20 lg:h-24"
+  priority
+/>
         </Link>
 
         {/* DESKTOP NAV */}
