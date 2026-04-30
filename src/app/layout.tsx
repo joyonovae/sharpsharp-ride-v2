@@ -3,9 +3,14 @@ import "./globals.css";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "SharpSharp Ride",
   description: "Ride sharing, car rental and delivery booking platform.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({
