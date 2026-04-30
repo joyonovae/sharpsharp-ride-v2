@@ -1,9 +1,17 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+async function getSiteUrl() {
+  const headersList = await headers();
+
+  const host = headersList.get("host");
+  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+
+  return process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+}
 
 export async function loginWithMagicLink(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
@@ -13,6 +21,7 @@ export async function loginWithMagicLink(formData: FormData) {
   }
 
   const supabase = await createClient();
+  const siteUrl = await getSiteUrl();
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
@@ -31,6 +40,7 @@ export async function loginWithMagicLink(formData: FormData) {
 
 export async function loginWithGoogle() {
   const supabase = await createClient();
+  const siteUrl = await getSiteUrl();
 
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
