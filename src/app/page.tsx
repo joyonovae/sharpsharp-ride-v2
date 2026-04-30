@@ -443,18 +443,30 @@ export default function HomePage() {
           </div>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {routes.map(([from, to, price]) => (
-              <div
-                key={`${from}-${to}`}
-                className="scroll-reveal rounded-2xl border p-5 transition hover:-translate-y-2 hover:border-emerald-400 hover:shadow-lg"
-              >
-                <h3 className="font-black">
-                  {from} → {to}
-                </h3>
-                <p className="mt-2 font-bold text-emerald-600">From {price}</p>
-                <p className="text-sm text-slate-500">per seat</p>
-              </div>
-            ))}
+            {routes.map(([from, to, price]) => {
+  const href = `/rides?from=${encodeURIComponent(
+    from
+  )}&to=${encodeURIComponent(to)}`;
+
+  return (
+    <Link
+      key={`${from}-${to}`}
+      href={href}
+      className="scroll-reveal block rounded-2xl border p-5 transition hover:-translate-y-2 hover:border-emerald-400 hover:shadow-lg"
+    >
+      <h3 className="font-black">
+        {from} → {to}
+      </h3>
+
+      <p className="mt-2 font-bold text-emerald-600">From {price}</p>
+      <p className="text-sm text-slate-500">per seat</p>
+
+      <p className="mt-4 text-sm font-bold text-emerald-600">
+        View rides →
+      </p>
+    </Link>
+  );
+})}
           </div>
         </div>
       </section>

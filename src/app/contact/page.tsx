@@ -33,13 +33,13 @@ export default function ContactPage() {
                 <ContactItem
                   icon={<Mail className="h-5 w-5" />}
                   title="Email"
-                  value="hello@sharpsharpride.com"
+                  value="contact@sharpsharpride.com"
                 />
 
                 <ContactItem
                   icon={<Phone className="h-5 w-5" />}
                   title="Phone"
-                  value="+234 000 000 0000"
+                  value="+234 806 684 3760"
                 />
 
                 <ContactItem
