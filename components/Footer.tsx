@@ -17,7 +17,7 @@ export default function Footer() {
               alt="SharpSharp Ride footer logo"
               width={240}
               height={100}
-              className="h-16 w-auto object-contain sm:h-18 lg:h-20 drop-shadow-[0_0_10px_rgba(24,195,126,0.35)] transition-all duration-300 hover:scale-105"
+              className="h-14 w-auto object-contain drop-shadow-[0_0_8px_rgba(24,195,126,0.25)] transition-all duration-300 hover:scale-105 sm:h-16 lg:h-18"
               priority
             />
           </Link>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type ProfileRow = {
@@ -15,6 +15,7 @@ const ADMIN_EMAILS = ["onovaejoy4@gmail.com", "sharpsharptaxi@gmail.com"];
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
 
   const [user, setUser] = useState<any>(null);
@@ -34,7 +35,6 @@ export default function Navbar() {
 
     handleScroll();
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -47,7 +47,6 @@ export default function Navbar() {
       } = await supabase.auth.getSession();
 
       const currentUser = session?.user ?? null;
-
       if (!mounted) return;
 
       setUser(currentUser);
@@ -59,8 +58,7 @@ export default function Navbar() {
           .eq("id", currentUser.id)
           .maybeSingle<ProfileRow>();
 
-        if (!mounted) return;
-        setUserRole(profile?.role ?? null);
+        if (mounted) setUserRole(profile?.role ?? null);
       } else {
         setUserRole(null);
       }
@@ -100,12 +98,10 @@ export default function Navbar() {
 
   async function handleLogout() {
     await supabase.auth.signOut();
-
     setUser(null);
     setUserRole(null);
     setAccountOpen(false);
     setMobileOpen(false);
-
     router.replace("/");
     router.refresh();
   }
@@ -131,41 +127,41 @@ export default function Navbar() {
               height={95}
               className={`w-auto object-contain transition-all duration-300 ${
   scrolled
-    ? "h-12 drop-shadow-[0_0_6px_rgba(24,195,126,0.25)]"
-    : "h-14 drop-shadow-[0_0_10px_rgba(24,195,126,0.35)] sm:h-16 lg:h-18"
+    ? "h-10 drop-shadow-[0_0_6px_rgba(24,195,126,0.2)]"
+    : "h-12 drop-shadow-[0_0_8px_rgba(24,195,126,0.25)] sm:h-14 lg:h-16"
 }`}
               priority
             />
           </div>
         </Link>
 
-        <div className="hidden items-center gap-8 text-sm md:flex">
-          <NavLink href="/" color="hover:text-blue-400">
+        <div className="hidden items-center gap-3 text-sm md:flex">
+          <NavLink href="/" pathname={pathname}>
             Home
           </NavLink>
 
-          <NavLink href="/rides" color="hover:text-green-400">
+          <NavLink href="/rides" pathname={pathname}>
             Book a Ride
           </NavLink>
 
-          <NavLink href="/offer-a-ride" color="hover:text-yellow-400" bold>
+          <NavLink href="/offer-a-ride" pathname={pathname}>
             Offer a Ride
           </NavLink>
 
-          <NavLink href="/rent" color="hover:text-purple-400">
+          <NavLink href="/rent" pathname={pathname}>
             Rent a Car
           </NavLink>
 
-          <NavLink href="/delivery" color="hover:text-pink-400">
+          <NavLink href="/delivery" pathname={pathname}>
             Delivery
           </NavLink>
 
-          <NavLink href="/faq" color="hover:text-orange-400">
+          <NavLink href="/faq" pathname={pathname}>
             FAQ
           </NavLink>
 
           {isAdmin && (
-            <NavLink href="/admin/driver-applications" color="hover:text-red-400">
+            <NavLink href="/admin/driver-applications" pathname={pathname}>
               Admin
             </NavLink>
           )}
@@ -177,17 +173,17 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setAccountOpen((prev) => !prev)}
-                className="rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-semibold text-white"
+                className="rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-semibold text-white transition hover:border-emerald-400/40 hover:bg-white/10"
               >
                 Account
               </button>
 
               {accountOpen && (
-                <div className="absolute right-0 mt-2 w-52 rounded-xl border border-white/10 bg-[#0d1c24] p-3 shadow-lg">
+                <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/10 bg-[#0d1c24] p-3 shadow-2xl">
                   <Link
                     href="/dashboard"
                     onClick={closeMenus}
-                    className="block py-2 text-white hover:text-emerald-400"
+                    className="block rounded-xl px-3 py-2 text-white transition hover:bg-white/5 hover:text-emerald-400"
                   >
                     Dashboard
                   </Link>
@@ -195,7 +191,7 @@ export default function Navbar() {
                   <Link
                     href="/dashboard/bookings"
                     onClick={closeMenus}
-                    className="block py-2 text-white hover:text-emerald-400"
+                    className="block rounded-xl px-3 py-2 text-white transition hover:bg-white/5 hover:text-emerald-400"
                   >
                     My Bookings
                   </Link>
@@ -204,7 +200,7 @@ export default function Navbar() {
                     <Link
                       href="/admin/driver-applications"
                       onClick={closeMenus}
-                      className="block py-2 text-white hover:text-red-400"
+                      className="block rounded-xl px-3 py-2 text-white transition hover:bg-white/5 hover:text-red-400"
                     >
                       Admin
                     </Link>
@@ -213,7 +209,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="mt-2 w-full text-left text-red-400"
+                    className="mt-2 w-full rounded-xl px-3 py-2 text-left font-bold text-red-400 transition hover:bg-red-500/10"
                   >
                     Logout
                   </button>
@@ -224,14 +220,14 @@ export default function Navbar() {
             <div className="hidden items-center gap-3 md:flex">
               <Link
                 href="/login"
-                className="rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-semibold text-white"
+                className="rounded-full border border-white/10 bg-white/5 px-5 py-2 text-sm font-semibold text-white transition hover:border-emerald-400/40 hover:bg-white/10"
               >
                 Login
               </Link>
 
               <Link
                 href="/signup"
-                className="rounded-full bg-[#18c37e] px-5 py-2 text-sm font-semibold text-[#04130c]"
+                className="rounded-full bg-[#18c37e] px-5 py-2 text-sm font-semibold text-[#04130c] transition hover:bg-emerald-400"
               >
                 Get Started
               </Link>
@@ -250,76 +246,98 @@ export default function Navbar() {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-white/10 bg-[#08141b] px-5 py-5 md:hidden">
-          <div className="flex flex-col gap-4 text-base font-semibold">
-            <MobileLink href="/" onClick={closeMenus}>
-              Home
-            </MobileLink>
-
-            <MobileLink href="/rides" onClick={closeMenus}>
-              Book a Ride
-            </MobileLink>
-
-            <MobileLink href="/offer-a-ride" onClick={closeMenus}>
-              Offer a Ride
-            </MobileLink>
-
-            <MobileLink href="/rent" onClick={closeMenus}>
-              Rent a Car
-            </MobileLink>
-
-            <MobileLink href="/delivery" onClick={closeMenus}>
-              Delivery
-            </MobileLink>
-
-            <MobileLink href="/faq" onClick={closeMenus}>
-              FAQ
-            </MobileLink>
-
-            {isAdmin && (
-              <MobileLink href="/admin/driver-applications" onClick={closeMenus}>
-                Admin
+        <div className="border-t border-white/10 bg-[#08141b] px-4 py-5 shadow-2xl md:hidden">
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-3">
+            <div className="flex flex-col gap-2 text-base font-semibold">
+              <MobileLink href="/" pathname={pathname} onClick={closeMenus}>
+                Home
               </MobileLink>
-            )}
 
-            <div className="mt-3 border-t border-white/10 pt-4">
-              {!loading && user ? (
-                <div className="flex flex-col gap-3">
-                  <MobileLink href="/dashboard" onClick={closeMenus}>
-                    Dashboard
-                  </MobileLink>
+              <MobileLink href="/rides" pathname={pathname} onClick={closeMenus}>
+                Book a Ride
+              </MobileLink>
 
-                  <MobileLink href="/dashboard/bookings" onClick={closeMenus}>
-                    My Bookings
-                  </MobileLink>
+              <MobileLink
+                href="/offer-a-ride"
+                pathname={pathname}
+                onClick={closeMenus}
+              >
+                Offer a Ride
+              </MobileLink>
 
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="rounded-full bg-red-500 px-5 py-3 text-left font-bold text-white"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : !loading ? (
-                <div className="flex flex-col gap-3">
-                  <Link
-                    href="/login"
-                    onClick={closeMenus}
-                    className="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-center font-bold text-white"
-                  >
-                    Login
-                  </Link>
+              <MobileLink href="/rent" pathname={pathname} onClick={closeMenus}>
+                Rent a Car
+              </MobileLink>
 
-                  <Link
-                    href="/signup"
-                    onClick={closeMenus}
-                    className="rounded-full bg-[#18c37e] px-5 py-3 text-center font-bold text-[#04130c]"
-                  >
-                    Get Started
-                  </Link>
-                </div>
-              ) : null}
+              <MobileLink
+                href="/delivery"
+                pathname={pathname}
+                onClick={closeMenus}
+              >
+                Delivery
+              </MobileLink>
+
+              <MobileLink href="/faq" pathname={pathname} onClick={closeMenus}>
+                FAQ
+              </MobileLink>
+
+              {isAdmin && (
+                <MobileLink
+                  href="/admin/driver-applications"
+                  pathname={pathname}
+                  onClick={closeMenus}
+                >
+                  Admin
+                </MobileLink>
+              )}
+
+              <div className="mt-3 border-t border-white/10 pt-4">
+                {!loading && user ? (
+                  <div className="flex flex-col gap-2">
+                    <MobileLink
+                      href="/dashboard"
+                      pathname={pathname}
+                      onClick={closeMenus}
+                    >
+                      Dashboard
+                    </MobileLink>
+
+                    <MobileLink
+                      href="/dashboard/bookings"
+                      pathname={pathname}
+                      onClick={closeMenus}
+                    >
+                      My Bookings
+                    </MobileLink>
+
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="rounded-2xl bg-red-500/15 px-5 py-3 text-left font-bold text-red-300"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : !loading ? (
+                  <div className="flex flex-col gap-3">
+                    <Link
+                      href="/login"
+                      onClick={closeMenus}
+                      className="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-center font-bold text-white"
+                    >
+                      Login
+                    </Link>
+
+                    <Link
+                      href="/signup"
+                      onClick={closeMenus}
+                      className="rounded-full bg-[#18c37e] px-5 py-3 text-center font-bold text-[#04130c]"
+                    >
+                      Get Started
+                    </Link>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
@@ -328,22 +346,29 @@ export default function Navbar() {
   );
 }
 
+function isActivePath(pathname: string, href: string) {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 function NavLink({
   href,
   children,
-  color,
-  bold,
+  pathname,
 }: {
   href: string;
   children: React.ReactNode;
-  color: string;
-  bold?: boolean;
+  pathname: string;
 }) {
+  const active = isActivePath(pathname, href);
+
   return (
     <Link
       href={href}
-      className={`text-white/80 transition hover:scale-105 ${color} ${
-        bold ? "font-semibold" : ""
+      className={`rounded-full px-4 py-2 transition ${
+        active
+          ? "bg-emerald-500/15 font-bold text-emerald-400 ring-1 ring-emerald-400/30"
+          : "text-white/80 hover:bg-white/5 hover:text-emerald-400"
       }`}
     >
       {children}
@@ -354,17 +379,25 @@ function NavLink({
 function MobileLink({
   href,
   children,
+  pathname,
   onClick,
 }: {
   href: string;
   children: React.ReactNode;
+  pathname: string;
   onClick: () => void;
 }) {
+  const active = isActivePath(pathname, href);
+
   return (
     <Link
       href={href}
       onClick={onClick}
-      className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-white hover:border-emerald-400/40 hover:text-emerald-400"
+      className={`rounded-2xl px-5 py-3 transition ${
+        active
+          ? "border border-emerald-400/30 bg-emerald-500/15 text-emerald-300"
+          : "border border-white/10 bg-white/5 text-white hover:border-emerald-400/40 hover:text-emerald-400"
+      }`}
     >
       {children}
     </Link>
