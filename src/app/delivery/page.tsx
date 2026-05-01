@@ -13,7 +13,7 @@ export default function DeliveryPage() {
               </p>
 
               <h1 className="mt-4 text-5xl font-black leading-tight sm:text-6xl">
-                Send Packages Across Cities.
+                Send packages within and across cities.
               </h1>
 
               <p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">
@@ -38,7 +38,7 @@ export default function DeliveryPage() {
                   href="/rides"
                   className="rounded-full border border-white/15 px-7 py-4 font-bold transition hover:border-emerald-400 hover:text-emerald-400"
                 >
-                  Book a Ride
+                  Book a Rider
                 </Link>
               </div>
             </div>
