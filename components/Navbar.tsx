@@ -179,11 +179,11 @@ export default function Navbar() {
               </button>
 
               {accountOpen && (
-                <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/10 bg-[#0d1c24] p-3 shadow-2xl">
+                <div className="absolute right-0 mt-3 w-64 rounded-2xl border border-white/10 bg-[#0d1c24] p-3 shadow-2xl">
                   <Link
                     href="/dashboard"
                     onClick={closeMenus}
-                    className="block rounded-xl px-3 py-2 text-white transition hover:bg-white/5 hover:text-emerald-400"
+                    className="block whitespace-nowrap rounded-xl px-3 py-2 text-white transition hover:bg-white/5 hover:text-emerald-400"
                   >
                     Dashboard
                   </Link>
