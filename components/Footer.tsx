@@ -11,16 +11,15 @@ export default function Footer() {
         
         {/* LOGO + DESCRIPTION */}
         <div>
-          <Link href="/" className="inline-flex items-center">
-            <Image
-              src={FOOTER_LOGO}
-              alt="SharpSharp Ride footer logo"
-              width={240}
-              height={100}
-              className="h-14 w-auto object-contain drop-shadow-[0_0_8px_rgba(24,195,126,0.25)] transition-all duration-300 hover:scale-105 sm:h-16 lg:h-18"
-              priority
-            />
-          </Link>
+          <Link href="/" className="inline-flex shrink-0 items-center">
+  <Image
+    src={FOOTER_LOGO}
+    alt="SharpSharp Ride footer logo"
+    width={150}
+    height={45}
+    className="h-10 w-auto object-contain opacity-90 transition hover:opacity-100 sm:h-11 lg:h-12"
+  />
+</Link>
 
           <p className="mt-5 max-w-md text-sm leading-7 text-white/70">
             SharpSharp Ride helps people move smarter with ride booking, car rentals,
