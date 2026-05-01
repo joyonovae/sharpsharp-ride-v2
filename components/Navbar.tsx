@@ -113,26 +113,22 @@ export default function Navbar() {
 
   return (
     <nav className="sticky left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#08141b]/95 shadow-lg backdrop-blur transition-all duration-300">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-5 lg:px-8">
-        <Link href="/" onClick={closeMenus} className="flex items-center">
-          <div
-            className={`transition-all duration-300 ${
-              scrolled ? "scale-[0.92]" : "scale-100"
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-5 lg:px-8">
+        <Link
+          href="/"
+          onClick={closeMenus}
+          className="flex shrink-0 items-center"
+        >
+          <Image
+            src={NAV_LOGO}
+            alt="SharpSharp Ride logo"
+            width={150}
+            height={45}
+            className={`w-auto object-contain transition-all duration-300 ${
+              scrolled ? "h-8 sm:h-9" : "h-9 sm:h-10 lg:h-11"
             }`}
-          >
-            <Image
-              src={NAV_LOGO}
-              alt="SharpSharp Ride logo"
-              width={280}
-              height={95}
-              className={`w-auto object-contain transition-all duration-300 ${
-  scrolled
-    ? "h-10 drop-shadow-[0_0_6px_rgba(24,195,126,0.2)]"
-    : "h-12 drop-shadow-[0_0_8px_rgba(24,195,126,0.25)] sm:h-14 lg:h-16"
-}`}
-              priority
-            />
-          </div>
+            priority
+          />
         </Link>
 
         <div className="hidden items-center gap-3 text-sm md:flex">
@@ -191,7 +187,7 @@ export default function Navbar() {
                   <Link
                     href="/dashboard/bookings"
                     onClick={closeMenus}
-                    className="block rounded-xl px-3 py-2 text-white transition hover:bg-white/5 hover:text-emerald-400"
+                    className="block whitespace-nowrap rounded-xl px-3 py-2 text-white transition hover:bg-white/5 hover:text-emerald-400"
                   >
                     My Bookings
                   </Link>
@@ -200,7 +196,7 @@ export default function Navbar() {
                     <Link
                       href="/admin/driver-applications"
                       onClick={closeMenus}
-                      className="block rounded-xl px-3 py-2 text-white transition hover:bg-white/5 hover:text-red-400"
+                      className="block whitespace-nowrap rounded-xl px-3 py-2 text-white transition hover:bg-white/5 hover:text-emerald-400"
                     >
                       Admin
                     </Link>
@@ -209,7 +205,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="mt-2 w-full rounded-xl px-3 py-2 text-left font-bold text-red-400 transition hover:bg-red-500/10"
+                    className="block w-full whitespace-nowrap rounded-xl px-3 py-2 text-left text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
                   >
                     Logout
                   </button>
