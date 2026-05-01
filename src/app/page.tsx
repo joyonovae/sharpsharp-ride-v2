@@ -472,39 +472,80 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* SAFETY */}
-      <section className="px-5 py-14 sm:py-20 lg:px-12">
-        <div className="mx-auto max-w-7xl">
-          <div className="scroll-reveal">
-            <h2 className="text-3xl font-black sm:text-4xl">
-              Your Safety Comes First
-            </h2>
-            <p className="mt-3 max-w-2xl text-slate-300">
-              We take safety seriously. From verified drivers to secure payments,
-              your journey is protected.
-            </p>
+      {/* TRUST + SAFETY */}
+<section className="bg-[#061116] px-5 py-16 text-white sm:py-20 lg:px-12">
+  <div className="mx-auto max-w-7xl">
+    <div className="scroll-reveal text-center">
+      <p className="text-sm font-bold uppercase tracking-[0.28em] text-emerald-400">
+        Travel With Confidence
+      </p>
+
+      <h2 className="mt-3 text-3xl font-black sm:text-5xl">
+        Know Who You’re Travelling With
+      </h2>
+
+      <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
+        We help make every trip safer by giving riders access to verified driver
+        details, vehicle information, secure payments, and trip records before
+        they book.
+      </p>
+    </div>
+
+    <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+      {[
+        {
+          title: "Verified Drivers",
+          desc: "Drivers must apply and get approved before they can offer rides on SharpSharp Ride.",
+          icon: "✅",
+        },
+        {
+          title: "Driver Profiles",
+          desc: "View driver details, phone number, vehicle type, plate number, and profile information before booking.",
+          icon: "👤",
+        },
+        {
+          title: "Secure Payments",
+          desc: "Payments are processed securely, and bookings are confirmed only after payment verification.",
+          icon: "💳",
+        },
+        {
+          title: "Trip Records",
+          desc: "Your bookings, routes, payment reference, and ride details stay available from your dashboard.",
+          icon: "📄",
+        },
+      ].map((item) => (
+        <div
+          key={item.title}
+          className="scroll-reveal rounded-[1.7rem] border border-white/10 bg-white/5 p-6 transition hover:-translate-y-2 hover:border-emerald-400/50 hover:bg-white/10"
+        >
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-2xl">
+            {item.icon}
           </div>
 
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              "Verified Drivers",
-              "Secure Payments",
-              "Emergency Contact",
-              "Rated & Reviewed",
-            ].map((item) => (
-              <div
-                key={item}
-                className="scroll-reveal rounded-3xl border border-white/10 bg-white/5 p-6 transition hover:-translate-y-2 hover:border-emerald-500/40"
-              >
-                <h3 className="text-xl font-bold text-emerald-400">{item}</h3>
-                <p className="mt-3 text-sm text-slate-300">
-                  Built to make every trip safer and more reliable.
-                </p>
-              </div>
-            ))}
-          </div>
+          <h3 className="mt-6 text-xl font-black text-emerald-400">
+            {item.title}
+          </h3>
+
+          <p className="mt-3 text-sm leading-6 text-slate-300">
+            {item.desc}
+          </p>
         </div>
-      </section>
+      ))}
+    </div>
+
+    <div className="scroll-reveal mt-10 rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-6 text-center md:p-8">
+      <h3 className="text-2xl font-black">
+        Built for safer shared movement across Nigeria
+      </h3>
+
+      <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-emerald-100 sm:text-base">
+        Whether you’re booking a seat, offering a ride, renting a car, or sending
+        a package, SharpSharp Ride is designed to give users more transparency,
+        trust, and control from start to finish.
+      </p>
+    </div>
+  </div>
+</section>
 
       {/* PARTNER CTA */}
       <section className="px-5 py-14 sm:py-20 lg:px-12">
