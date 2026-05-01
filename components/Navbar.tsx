@@ -158,7 +158,7 @@ export default function Navbar() {
               </button>
 
               {accountOpen && (
-                <div className="absolute right-0 mt-3 w-75 overflow-hidden rounded-2xl border border-white/10 bg-[#0b1d26]/95 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                <div className="absolute right-0 mt-3 w-100 overflow-hidden rounded-2xl border border-white/10 bg-[#0b1d26]/95 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
                   <div className="space-y-1 p-2">
 
                     <DropdownLink href="/dashboard" onClick={closeMenus}>
