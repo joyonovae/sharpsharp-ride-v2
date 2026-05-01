@@ -3,7 +3,7 @@ import "./globals.css";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "SharpSharp Ride",
   description: "Ride sharing, car rental and delivery booking platform.",
   icons: {
@@ -20,11 +20,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-[#08141b] text-white antialiased">
-        <div className="relative flex min-h-screen flex-col">
+      <body className="no-site-overflow min-h-screen bg-[#08141b] text-white antialiased">
+        <div className="no-site-overflow relative flex min-h-screen flex-col">
           <Navbar />
 
-          <main className="flex-1">{children}</main>
+          <main className="no-site-overflow flex-1">
+            {children}
+          </main>
 
           <Footer />
         </div>
