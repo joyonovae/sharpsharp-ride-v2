@@ -112,11 +112,14 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky left-0 right-0 top-0 z-50 border-b border-white/10 bg-[#08141b]/95 shadow-lg backdrop-blur transition-all duration-300">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-5 lg:px-8">
-        
+    <nav className="sticky left-0 right-0 top-0 z-[100] overflow-visible border-b border-white/10 bg-[#08141b]/95 shadow-lg backdrop-blur transition-all duration-300">
+      <div className="relative mx-auto flex max-w-7xl items-center justify-between overflow-visible px-4 py-3 sm:px-5 lg:px-8">
         {/* LOGO */}
-        <Link href="/" onClick={closeMenus} className="flex shrink-0 items-center">
+        <Link
+          href="/"
+          onClick={closeMenus}
+          className="flex shrink-0 items-center"
+        >
           <Image
             src={NAV_LOGO}
             alt="SharpSharp Ride logo"
@@ -131,12 +134,24 @@ export default function Navbar() {
 
         {/* NAV LINKS */}
         <div className="hidden items-center gap-3 text-sm md:flex">
-          <NavLink href="/" pathname={pathname}>Home</NavLink>
-          <NavLink href="/rides" pathname={pathname}>Book a Ride</NavLink>
-          <NavLink href="/offer-a-ride" pathname={pathname}>Offer a Ride</NavLink>
-          <NavLink href="/rent" pathname={pathname}>Rent a Car</NavLink>
-          <NavLink href="/delivery" pathname={pathname}>Delivery</NavLink>
-          <NavLink href="/faq" pathname={pathname}>FAQ</NavLink>
+          <NavLink href="/" pathname={pathname}>
+            Home
+          </NavLink>
+          <NavLink href="/rides" pathname={pathname}>
+            Book a Ride
+          </NavLink>
+          <NavLink href="/offer-a-ride" pathname={pathname}>
+            Offer a Ride
+          </NavLink>
+          <NavLink href="/rent" pathname={pathname}>
+            Rent a Car
+          </NavLink>
+          <NavLink href="/delivery" pathname={pathname}>
+            Delivery
+          </NavLink>
+          <NavLink href="/faq" pathname={pathname}>
+            FAQ
+          </NavLink>
 
           {isAdmin && (
             <NavLink href="/admin/driver-applications" pathname={pathname}>
@@ -146,9 +161,9 @@ export default function Navbar() {
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 overflow-visible">
           {!loading && user ? (
-            <div className="relative hidden md:block">
+            <div className="relative hidden overflow-visible md:block">
               <button
                 type="button"
                 onClick={() => setAccountOpen((prev) => !prev)}
@@ -158,14 +173,16 @@ export default function Navbar() {
               </button>
 
               {accountOpen && (
-                <div className="absolute right-0 mt-3 w-[260px] overflow-hidden rounded-2xl border border-white/10 bg-[#0b1d26]/95 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+                <div className="absolute right-0 top-full z-[200] mt-3 w-[260px] overflow-visible rounded-2xl border border-white/10 bg-[#0b1d26]/95 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
                   <div className="space-y-1 p-2">
-
                     <DropdownLink href="/dashboard" onClick={closeMenus}>
                       Dashboard
                     </DropdownLink>
 
-                    <DropdownLink href="/dashboard/bookings" onClick={closeMenus}>
+                    <DropdownLink
+                      href="/dashboard/bookings"
+                      onClick={closeMenus}
+                    >
                       My Bookings
                     </DropdownLink>
 
@@ -183,7 +200,7 @@ export default function Navbar() {
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full whitespace-nowrap rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-300 transition hover:bg-red-500/10"
+                      className="w-full whitespace-nowrap rounded-xl px-4 py-2.5 text-left text-sm font-semibold text-red-300 transition hover:bg-red-500/10"
                     >
                       Logout
                     </button>
@@ -225,12 +242,32 @@ export default function Navbar() {
         <div className="border-t border-white/10 bg-[#08141b] px-4 py-5 shadow-2xl md:hidden">
           <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-3">
             <div className="flex flex-col gap-2 text-base font-semibold">
-              <MobileLink href="/" pathname={pathname} onClick={closeMenus}>Home</MobileLink>
-              <MobileLink href="/rides" pathname={pathname} onClick={closeMenus}>Book a Ride</MobileLink>
-              <MobileLink href="/offer-a-ride" pathname={pathname} onClick={closeMenus}>Offer a Ride</MobileLink>
-              <MobileLink href="/rent" pathname={pathname} onClick={closeMenus}>Rent a Car</MobileLink>
-              <MobileLink href="/delivery" pathname={pathname} onClick={closeMenus}>Delivery</MobileLink>
-              <MobileLink href="/faq" pathname={pathname} onClick={closeMenus}>FAQ</MobileLink>
+              <MobileLink href="/" pathname={pathname} onClick={closeMenus}>
+                Home
+              </MobileLink>
+              <MobileLink href="/rides" pathname={pathname} onClick={closeMenus}>
+                Book a Ride
+              </MobileLink>
+              <MobileLink
+                href="/offer-a-ride"
+                pathname={pathname}
+                onClick={closeMenus}
+              >
+                Offer a Ride
+              </MobileLink>
+              <MobileLink href="/rent" pathname={pathname} onClick={closeMenus}>
+                Rent a Car
+              </MobileLink>
+              <MobileLink
+                href="/delivery"
+                pathname={pathname}
+                onClick={closeMenus}
+              >
+                Delivery
+              </MobileLink>
+              <MobileLink href="/faq" pathname={pathname} onClick={closeMenus}>
+                FAQ
+              </MobileLink>
 
               {isAdmin && (
                 <MobileLink
@@ -264,7 +301,7 @@ function DropdownLink({
     <Link
       href={href}
       onClick={onClick}
-      className="block whitespace-nowrap rounded-xl px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/5 hover:text-emerald-400"
+      className="block whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/5 hover:text-emerald-400"
     >
       {children}
     </Link>
