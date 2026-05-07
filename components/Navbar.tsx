@@ -135,15 +135,15 @@ export default function Navbar() {
           className="flex shrink-0 items-center"
         >
           <Image
-            src={NAV_LOGO}
-            alt="SharpSharp Ride logo"
-            width={130}
-            height={40}
-            className={`w-auto object-contain transition-all duration-300 ${
-              scrolled ? "h-7 sm:h-8" : "h-8 sm:h-9 lg:h-10"
-            }`}
-            priority
-          />
+  src={NAV_LOGO}
+  alt="SharpSharp Ride logo"
+  width={110}
+  height={34}
+  className={`w-auto object-contain transition-all duration-300 ${
+    scrolled ? "h-6 sm:h-7" : "h-7 sm:h-8 lg:h-9"
+  }`}
+  priority
+/>
         </Link>
 
         <div className="hidden items-center gap-6 text-sm md:flex">
