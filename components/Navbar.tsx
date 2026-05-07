@@ -128,7 +128,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky left-0 right-0 top-0 z-[100] overflow-visible border-b border-white/10 bg-[#08141b]/95 shadow-lg backdrop-blur transition-all duration-300">
-      <div className="relative mx-auto flex max-w-7xl items-center justify-between overflow-visible px-4 py-3 sm:px-5 lg:px-8">
+      <div className="relative flex w-full items-center justify-between overflow-visible px-4 py-3 sm:px-6 lg:px-10">
         <Link
           href="/"
           onClick={closeMenus}
@@ -137,10 +137,10 @@ export default function Navbar() {
           <Image
             src={NAV_LOGO}
             alt="SharpSharp Ride logo"
-            width={150}
-            height={45}
+            width={130}
+            height={40}
             className={`w-auto object-contain transition-all duration-300 ${
-              scrolled ? "h-8 sm:h-9" : "h-9 sm:h-10 lg:h-11"
+              scrolled ? "h-7 sm:h-8" : "h-8 sm:h-9 lg:h-10"
             }`}
             priority
           />
@@ -192,14 +192,8 @@ export default function Navbar() {
                 Account
               </button>
 
-              <div
-                className={`absolute right-2 top-[120%] z-[200] w-[240px] min-w-[220px] overflow-hidden rounded-2xl border border-white/10 bg-[#0b1d26]/95 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl transition-all duration-200 ${
-                  accountOpen
-                    ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
-                    : "pointer-events-none -translate-y-2 scale-95 opacity-0"
-                }`}
-              >
-                <div className="space-y-1 p-2">
+              {accountOpen && (
+                <div className="absolute right-0 top-full z-[200] mt-3 w-56 rounded-2xl border border-white/10 bg-[#0b1d26] p-2 shadow-2xl">
                   <DropdownLink href="/dashboard" onClick={closeMenus}>
                     Dashboard
                   </DropdownLink>
@@ -225,12 +219,12 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="w-full whitespace-nowrap rounded-xl px-4 py-3 text-left text-sm font-semibold text-red-400 transition hover:bg-red-500/10 hover:text-red-300"
+                    className="block w-full rounded-xl px-4 py-2.5 text-left text-sm font-semibold text-red-300 transition hover:bg-red-500/10"
                   >
                     Logout
                   </button>
                 </div>
-              </div>
+              )}
             </div>
           ) : !loading ? (
             <div className="hidden items-center gap-3 md:flex">
@@ -375,7 +369,7 @@ function DropdownLink({
     <Link
       href={href}
       onClick={onClick}
-      className="flex w-full items-center justify-start whitespace-nowrap rounded-xl px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/5 hover:text-emerald-400"
+      className="block rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/5 hover:text-emerald-400"
     >
       {children}
     </Link>
@@ -401,7 +395,9 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="group relative text-sm font-semibold text-white/75 transition hover:text-white"
+      className={`group relative text-sm font-semibold transition ${
+        active ? "text-emerald-400" : "text-white/75 hover:text-white"
+      }`}
     >
       {children}
 
