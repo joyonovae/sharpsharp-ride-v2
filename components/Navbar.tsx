@@ -193,38 +193,35 @@ export default function Navbar() {
               </button>
 
               {accountOpen && (
-                <div className="absolute right-8 top-full z-[200] mt-3 w-56 rounded-2xl border border-white/10 bg-[#0b1d26] p-2 shadow-2xl">
-                  <DropdownLink href="/dashboard" onClick={closeMenus}>
-                    Dashboard
-                  </DropdownLink>
+  <div className="absolute right-full top-0 z-[200] mr-4 w-64 rounded-2xl border border-white/10 bg-[#0b1d26] p-2 shadow-2xl">
+    <DropdownLink href="/dashboard" onClick={closeMenus}>
+      Dashboard
+    </DropdownLink>
 
-                  <DropdownLink
-                    href="/dashboard/bookings"
-                    onClick={closeMenus}
-                  >
-                    My Bookings
-                  </DropdownLink>
+    <DropdownLink href="/dashboard/bookings" onClick={closeMenus}>
+      My Bookings
+    </DropdownLink>
 
-                  {isAdmin && (
-                    <DropdownLink
-                      href="/admin/driver-applications"
-                      onClick={closeMenus}
-                    >
-                      Admin
-                    </DropdownLink>
-                  )}
+    {isAdmin && (
+      <DropdownLink
+        href="/admin/driver-applications"
+        onClick={closeMenus}
+      >
+        Admin
+      </DropdownLink>
+    )}
 
-                  <div className="my-1 h-px bg-white/10" />
+    <div className="my-1 h-px bg-white/10" />
 
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="block w-full whitespace-nowrap rounded-xl px-4 py-3 text-left text-sm font-semibold text-red-300 transition hover:bg-red-500/10"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
+    <button
+      type="button"
+      onClick={handleLogout}
+      className="block w-full whitespace-nowrap rounded-xl px-4 py-3 text-left text-sm font-semibold text-red-300 transition hover:bg-red-500/10"
+    >
+      Logout
+    </button>
+  </div>
+)}
             </div>
           ) : !loading ? (
             <div className="hidden items-center gap-3 md:flex">
