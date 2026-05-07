@@ -179,7 +179,7 @@ export default function HomePage() {
               <Link
               href="/offer-a-ride"
               className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6">
-              Become a Driver
+              Offer a Ride
             </Link>
               
             </div>
