@@ -193,7 +193,8 @@ export default function Navbar() {
               </button>
 
               {accountOpen && (
-  <div className="absolute right-full top-0 z-[200] mr-4 w-80 rounded-2xl border border-white/10 bg-[#0b1d26] p-2 shadow-2xl">  <DropdownLink href="/dashboard" onClick={closeMenus}>
+  <div className="absolute right-full top-0 z-[200] mr-4 w-64 rounded-2xl border border-white/10 bg-[#0b1d26] p-2 shadow-2xl">
+    <DropdownLink href="/dashboard" onClick={closeMenus}>
       Dashboard
     </DropdownLink>
 
