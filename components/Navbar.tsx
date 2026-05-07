@@ -135,15 +135,15 @@ export default function Navbar() {
           className="flex shrink-0 items-center"
         >
           <Image
-  src={NAV_LOGO}
-  alt="SharpSharp Ride logo"
-  width={110}
-  height={34}
-  className={`w-auto object-contain transition-all duration-300 ${
-    scrolled ? "h-6 sm:h-7" : "h-7 sm:h-8 lg:h-9"
-  }`}
-  priority
-/>
+            src={NAV_LOGO}
+            alt="SharpSharp Ride logo"
+            width={110}
+            height={34}
+            className={`w-auto object-contain transition-all duration-300 ${
+              scrolled ? "h-6 sm:h-7" : "h-7 sm:h-8 lg:h-9"
+            }`}
+            priority
+          />
         </Link>
 
         <div className="hidden items-center gap-6 text-sm md:flex">
@@ -193,7 +193,7 @@ export default function Navbar() {
               </button>
 
               {accountOpen && (
-                <div className="absolute right-0 top-full z-[200] mt-3 w-56 rounded-2xl border border-white/10 bg-[#0b1d26] p-2 shadow-2xl">
+                <div className="absolute right-0 top-full z-[200] mt-3 w-[260px] rounded-2xl border border-white/10 bg-[#0b1d26] p-2 shadow-2xl">
                   <DropdownLink href="/dashboard" onClick={closeMenus}>
                     Dashboard
                   </DropdownLink>
@@ -219,7 +219,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="block w-full rounded-xl px-4 py-2.5 text-left text-sm font-semibold text-red-300 transition hover:bg-red-500/10"
+                    className="block w-full whitespace-nowrap rounded-xl px-4 py-3 text-left text-sm font-semibold text-red-300 transition hover:bg-red-500/10"
                   >
                     Logout
                   </button>
@@ -369,7 +369,7 @@ function DropdownLink({
     <Link
       href={href}
       onClick={onClick}
-      className="block rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/5 hover:text-emerald-400"
+      className="block w-full whitespace-nowrap rounded-xl px-4 py-3 text-sm font-semibold text-white transition hover:bg-white/5 hover:text-emerald-400"
     >
       {children}
     </Link>
