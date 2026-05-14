@@ -1,29 +1,44 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-export async function approveDriver(formData: FormData) {
+async function requireAdmin() {
   const supabase = await createClient();
-
-  const appId = formData.get("appId") as string;
-  const userId = formData.get("userId") as string;
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 🔒 DOUBLE SECURITY
-  if (!user || user.email !== "onovaejoy4@gmail.com") {
-    throw new Error("Not authorized");
-  }
+  if (!user) throw new Error("Not authorized");
 
-  // ✅ Update application
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "admin") throw new Error("Not authorized");
+
+  return supabase;
+}
+
+export async function approveDriver(formData: FormData) {
+  const supabase = await requireAdmin();
+
+  const appId = String(formData.get("appId") || "");
+  const userId = String(formData.get("userId") || "");
+
+  if (!appId || !userId) throw new Error("Missing application details");
+
   await supabase
     .from("driver_applications")
-    .update({ status: "approved" })
+    .update({
+      status: "approved",
+      admin_note: "Driver approved by admin.",
+    })
     .eq("id", appId);
 
-  // ✅ Update profile role
   await supabase
     .from("profiles")
     .update({
@@ -31,4 +46,35 @@ export async function approveDriver(formData: FormData) {
       driver_status: "approved",
     })
     .eq("id", userId);
+
+  revalidatePath("/admin/driver-applications");
+  revalidatePath("/admin");
+}
+
+export async function rejectDriver(formData: FormData) {
+  const supabase = await requireAdmin();
+
+  const appId = String(formData.get("appId") || "");
+  const userId = String(formData.get("userId") || "");
+
+  if (!appId || !userId) throw new Error("Missing application details");
+
+  await supabase
+    .from("driver_applications")
+    .update({
+      status: "rejected",
+      admin_note: "Driver application rejected by admin.",
+    })
+    .eq("id", appId);
+
+  await supabase
+    .from("profiles")
+    .update({
+      role: "passenger",
+      driver_status: "rejected",
+    })
+    .eq("id", userId);
+
+  revalidatePath("/admin/driver-applications");
+  revalidatePath("/admin");
 }

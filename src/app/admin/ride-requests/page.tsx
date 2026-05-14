@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -6,25 +5,16 @@ import {
   MapPin,
   Route,
   Users,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
+import { markRideRequestMatched, cancelRideRequest } from "./actions";
 
 function getStatusStyle(status?: string | null) {
-  if (status === "matched") {
-    return "border-blue-400/30 bg-blue-500/10 text-blue-300";
-  }
-
-  if (status === "assigned") {
-    return "border-emerald-400/30 bg-emerald-500/10 text-emerald-300";
-  }
-
-  if (status === "completed") {
-    return "border-white/20 bg-white/10 text-white";
-  }
-
-  if (status === "cancelled") {
-    return "border-red-400/30 bg-red-500/10 text-red-300";
-  }
-
+  if (status === "matched") return "border-blue-400/30 bg-blue-500/10 text-blue-300";
+  if (status === "assigned") return "border-emerald-400/30 bg-emerald-500/10 text-emerald-300";
+  if (status === "completed") return "border-white/20 bg-white/10 text-white";
+  if (status === "cancelled") return "border-red-400/30 bg-red-500/10 text-red-300";
   return "border-yellow-400/30 bg-yellow-500/10 text-yellow-300";
 }
 
@@ -68,9 +58,7 @@ function groupRideRequests(requests: RideRequest[]): GroupedRequest[] {
       existing.totalPassengers += Number(request.passenger_count || 0);
       existing.requestCount += 1;
 
-      if (request.status === "pending") {
-        existing.pendingCount += 1;
-      }
+      if (request.status === "pending") existing.pendingCount += 1;
     } else {
       map.set(key, {
         key,
@@ -88,7 +76,6 @@ function groupRideRequests(requests: RideRequest[]): GroupedRequest[] {
     if (a.travel_date === b.travel_date) {
       return b.totalPassengers - a.totalPassengers;
     }
-
     return a.travel_date.localeCompare(b.travel_date);
   });
 }
@@ -100,9 +87,7 @@ export default async function AdminRideRequestsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -110,9 +95,7 @@ export default async function AdminRideRequestsPage() {
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "admin") {
-    redirect("/dashboard");
-  }
+  if (profile?.role !== "admin") redirect("/dashboard");
 
   const { data } = await supabase
     .from("ride_requests")
@@ -201,18 +184,12 @@ export default async function AdminRideRequestsPage() {
                   </h3>
 
                   <div className="mt-5 grid gap-3">
-                    <MiniInfo
-                      label="Travel Date"
-                      value={group.travel_date}
-                    />
+                    <MiniInfo label="Travel Date" value={group.travel_date} />
                     <MiniInfo
                       label="Total Passengers"
                       value={`${group.totalPassengers}`}
                     />
-                    <MiniInfo
-                      label="Requests"
-                      value={`${group.requestCount}`}
-                    />
+                    <MiniInfo label="Requests" value={`${group.requestCount}`} />
                     <MiniInfo
                       label="Pending Requests"
                       value={`${group.pendingCount}`}
@@ -291,19 +268,16 @@ export default async function AdminRideRequestsPage() {
                           label="Passengers"
                           value={`${request.passenger_count}`}
                         />
-
                         <InfoCard
                           icon={<CalendarDays className="h-5 w-5" />}
                           label="Travel Date"
                           value={request.travel_date}
                         />
-
                         <InfoCard
                           icon={<MapPin className="h-5 w-5" />}
                           label="Pickup"
                           value={request.pickup_point || "Not specified"}
                         />
-
                         <InfoCard
                           icon={<MapPin className="h-5 w-5" />}
                           label="Dropoff"
@@ -318,18 +292,14 @@ export default async function AdminRideRequestsPage() {
 
                         <div className="mt-3 grid gap-3 sm:grid-cols-2">
                           <div>
-                            <p className="text-sm text-slate-400">
-                              Full Name
-                            </p>
+                            <p className="text-sm text-slate-400">Full Name</p>
                             <p className="font-bold text-white">
                               {request.full_name || "—"}
                             </p>
                           </div>
 
                           <div>
-                            <p className="text-sm text-slate-400">
-                              Phone
-                            </p>
+                            <p className="text-sm text-slate-400">Phone</p>
                             <p className="font-bold text-white">
                               {request.phone || "—"}
                             </p>
@@ -351,16 +321,38 @@ export default async function AdminRideRequestsPage() {
                     </div>
 
                     <div className="flex flex-col gap-3 lg:w-[220px]">
-                      <button className="rounded-2xl bg-emerald-500 px-5 py-4 font-bold text-[#04130c] transition hover:bg-emerald-400">
-                        Assign Ride
-                      </button>
+                      {request.status === "pending" && (
+                        <form action={markRideRequestMatched}>
+                          <input
+                            type="hidden"
+                            name="requestId"
+                            value={request.id}
+                          />
 
-                      <button className="rounded-2xl border border-blue-400/30 bg-blue-500/10 px-5 py-4 font-bold text-blue-300 transition hover:bg-blue-500/20">
-                        Mark Matched
-                      </button>
+                          <button className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-400/30 bg-blue-500/10 px-5 py-4 font-bold text-blue-300 transition hover:bg-blue-500/20">
+                            <CheckCircle2 className="h-5 w-5" />
+                            Mark Matched
+                          </button>
+                        </form>
+                      )}
+
+                      {request.status !== "cancelled" && (
+                        <form action={cancelRideRequest}>
+                          <input
+                            type="hidden"
+                            name="requestId"
+                            value={request.id}
+                          />
+
+                          <button className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 font-bold text-red-300 transition hover:bg-red-500/20">
+                            <XCircle className="h-5 w-5" />
+                            Cancel Request
+                          </button>
+                        </form>
+                      )}
 
                       <button className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 font-bold text-white transition hover:border-white/20 hover:bg-white/10">
-                        View Details
+                        Assign Ride Soon
                       </button>
                     </div>
                   </div>
@@ -378,10 +370,7 @@ function StatCard({ title, value }: { title: string; value: number }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
       <p className="text-sm text-slate-400">{title}</p>
-
-      <h3 className="mt-2 text-3xl font-black text-emerald-400">
-        {value}
-      </h3>
+      <h3 className="mt-2 text-3xl font-black text-emerald-400">{value}</h3>
     </div>
   );
 }
@@ -410,15 +399,12 @@ function InfoCard({
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
       <div className="flex items-center gap-2 text-emerald-400">
         {icon}
-
         <p className="text-xs uppercase tracking-widest text-slate-400">
           {label}
         </p>
       </div>
 
-      <p className="mt-3 break-words font-bold text-white">
-        {value}
-      </p>
+      <p className="mt-3 break-words font-bold text-white">{value}</p>
     </div>
   );
 }
