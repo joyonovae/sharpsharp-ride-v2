@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -321,6 +322,13 @@ export default async function AdminRideRequestsPage() {
                     </div>
 
                     <div className="flex flex-col gap-3 lg:w-[220px]">
+                      <Link
+                        href={`/admin/ride-requests/${request.id}`}
+                        className="rounded-2xl bg-emerald-500 px-5 py-4 text-center font-bold text-[#04130c] transition hover:bg-emerald-400"
+                      >
+                        Assign Ride
+                      </Link>
+
                       {request.status === "pending" && (
                         <form action={markRideRequestMatched}>
                           <input
@@ -350,10 +358,6 @@ export default async function AdminRideRequestsPage() {
                           </button>
                         </form>
                       )}
-
-                      <button className="rounded-2xl border border-white/10 bg-white/5 px-5 py-4 font-bold text-white transition hover:border-white/20 hover:bg-white/10">
-                        Assign Ride Soon
-                      </button>
                     </div>
                   </div>
                 </div>
