@@ -1,13 +1,18 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function RequestRidePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
+
+  const initialFrom = searchParams.get("from") || "";
+  const initialTo = searchParams.get("to") || "";
+  const initialDate = searchParams.get("date") || "";
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -15,9 +20,9 @@ export default function RequestRidePage() {
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
-    from_city: "",
-    to_city: "",
-    travel_date: "",
+    from_city: initialFrom,
+    to_city: initialTo,
+    travel_date: initialDate,
     preferred_time: "",
     passenger_count: "1",
     pickup_point: "",
@@ -93,6 +98,12 @@ export default function RequestRidePage() {
               Tell us where you’re going. We’ll use your route and travel date
               to match you with other passengers or assign a driver later.
             </p>
+
+            {(initialFrom || initialTo || initialDate) && (
+              <div className="mt-5 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-sm text-emerald-200">
+                We filled this request using the route you searched for.
+              </div>
+            )}
           </div>
 
           {error && (
