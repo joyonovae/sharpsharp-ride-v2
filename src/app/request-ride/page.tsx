@@ -1,11 +1,36 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, Suspense, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 
 export default function RequestRidePage() {
+  return (
+    <Suspense fallback={<RequestRideLoading />}>
+      <RequestRideContent />
+    </Suspense>
+  );
+}
+
+function RequestRideLoading() {
+  return (
+    <main className="min-h-screen bg-[#08141b] px-4 py-24 text-white">
+      <section className="mx-auto max-w-3xl">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl backdrop-blur md:p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-400">
+            Ride Request
+          </p>
+          <h1 className="mt-3 text-3xl font-bold md:text-4xl">
+            Loading request form...
+          </h1>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function RequestRideContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);
