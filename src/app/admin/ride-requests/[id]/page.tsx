@@ -81,6 +81,16 @@ export default async function AdminRideRequestDetailPage({
   const availableRides =
     matchingRides && matchingRides.length > 0 ? matchingRides : otherRides || [];
 
+  const createRideHref = `/admin/rides/new?from=${encodeURIComponent(
+    request.from_city || ""
+  )}&to=${encodeURIComponent(
+    request.to_city || ""
+  )}&date=${encodeURIComponent(
+    request.travel_date || ""
+  )}&passengers=${encodeURIComponent(
+    String(request.passenger_count || 1)
+  )}&pickup=${encodeURIComponent(request.pickup_point || "")}`;
+
   return (
     <main className="min-h-screen bg-[#061116] px-4 py-10 text-white sm:px-6 lg:px-10">
       <div className="mx-auto max-w-7xl space-y-8">
@@ -195,8 +205,30 @@ export default async function AdminRideRequestDetailPage({
               </span>
             </div>
 
+            <div className="mb-6 mt-6 rounded-[1.5rem] border border-emerald-400/20 bg-emerald-500/10 p-5">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-white">
+                    Need to create a ride first?
+                  </h3>
+
+                  <p className="mt-2 text-sm leading-6 text-slate-300">
+                    Create an operational ride using this passenger demand and
+                    then assign this request to it.
+                  </p>
+                </div>
+
+                <Link
+                  href={createRideHref}
+                  className="inline-flex justify-center rounded-full bg-emerald-500 px-6 py-3 font-bold text-[#04130c] transition hover:bg-emerald-400"
+                >
+                  Create Ride for This Request
+                </Link>
+              </div>
+            </div>
+
             {availableRides.length === 0 ? (
-              <div className="mt-6 rounded-[1.5rem] border border-dashed border-white/15 bg-white/5 p-6">
+              <div className="rounded-[1.5rem] border border-dashed border-white/15 bg-white/5 p-6">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-[#04130c]">
                   <Route className="h-6 w-6" />
                 </div>
@@ -211,7 +243,7 @@ export default async function AdminRideRequestDetailPage({
                 </p>
               </div>
             ) : (
-              <div className="mt-6 grid gap-4">
+              <div className="grid gap-4">
                 {availableRides.map((ride: any) => (
                   <div
                     key={ride.id}

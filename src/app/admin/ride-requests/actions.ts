@@ -82,7 +82,40 @@ export async function assignRideToRequest(formData: FormData) {
     throw new Error("Missing assignment details");
   }
 
-  await supabase
+  // GET REQUEST
+  const { data: request, error: requestError } = await supabase
+    .from("ride_requests")
+    .select("*")
+    .eq("id", requestId)
+    .single();
+
+  if (requestError || !request) {
+    throw new Error("Ride request not found");
+  }
+
+  // GET RIDE
+  const { data: ride, error: rideError } = await supabase
+    .from("rides")
+    .select("*")
+    .eq("id", rideId)
+    .single();
+
+  if (rideError || !ride) {
+    throw new Error("Ride not found");
+  }
+
+  const passengersNeeded = Number(request.passenger_count || 1);
+  const availableSeats = Number(ride.available_seats || 0);
+
+  // PREVENT OVERBOOKING
+  if (availableSeats < passengersNeeded) {
+    throw new Error("Not enough available seats");
+  }
+
+  const updatedSeats = availableSeats - passengersNeeded;
+
+  // UPDATE REQUEST
+  const { error: requestUpdateError } = await supabase
     .from("ride_requests")
     .update({
       status: "assigned",
@@ -94,7 +127,24 @@ export async function assignRideToRequest(formData: FormData) {
     })
     .eq("id", requestId);
 
+  if (requestUpdateError) {
+    throw new Error(requestUpdateError.message);
+  }
+
+  // UPDATE RIDE SEATS
+  const { error: rideUpdateError } = await supabase
+    .from("rides")
+    .update({
+      available_seats: updatedSeats,
+    })
+    .eq("id", rideId);
+
+  if (rideUpdateError) {
+    throw new Error(rideUpdateError.message);
+  }
+
   revalidatePath("/admin/ride-requests");
   revalidatePath(`/admin/ride-requests/${requestId}`);
+  revalidatePath("/rides");
   revalidatePath("/dashboard");
 }
