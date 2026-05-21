@@ -135,7 +135,12 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false })
     .limit(4);
 
-  const requests = (rideRequests || []) as RideRequest[];
+  const requests = (rideRequests || []).map((request: any) => ({
+  ...request,
+  assigned_ride: Array.isArray(request.assigned_ride)
+    ? request.assigned_ride[0] || null
+    : request.assigned_ride || null,
+})) as RideRequest[];
   const assignedRequests = requests.filter(
     (request) => request.status === "assigned" && request.assigned_ride
   );
