@@ -21,12 +21,31 @@ function getStatusColor(status?: string | null) {
 }
 
 function getRequestStatusStyle(status?: string | null) {
-  if (status === "matched") return "border-blue-400/30 bg-blue-500/10 text-blue-300";
-  if (status === "assigned") return "border-emerald-400/30 bg-emerald-500/10 text-emerald-300";
+  if (status === "matched")
+    return "border-blue-400/30 bg-blue-500/10 text-blue-300";
+  if (status === "assigned")
+    return "border-emerald-400/30 bg-emerald-500/10 text-emerald-300";
   if (status === "completed") return "border-white/20 bg-white/10 text-white";
-  if (status === "cancelled") return "border-red-400/30 bg-red-500/10 text-red-300";
+  if (status === "cancelled")
+    return "border-red-400/30 bg-red-500/10 text-red-300";
   return "border-yellow-400/30 bg-yellow-500/10 text-yellow-300";
 }
+
+type AssignedRide = {
+  id: string;
+  from_city: string;
+  to_city: string;
+  travel_date: string;
+  travel_time: string;
+  price_per_seat: number;
+  pickup_point: string | null;
+  driver_name: string | null;
+  driver_phone: string | null;
+  vehicle_brand: string | null;
+  vehicle_model: string | null;
+  vehicle_color: string | null;
+  plate_number: string | null;
+};
 
 type RideRequest = {
   id: string;
@@ -39,6 +58,9 @@ type RideRequest = {
   dropoff_point: string | null;
   status: string;
   created_at: string;
+  assigned_ride_id: string | null;
+  assigned_at: string | null;
+  assigned_ride?: AssignedRide | null;
 };
 
 export default async function DashboardPage() {
@@ -79,13 +101,44 @@ export default async function DashboardPage() {
   const { data: rideRequests } = await supabase
     .from("ride_requests")
     .select(
-      "id, from_city, to_city, travel_date, preferred_time, passenger_count, pickup_point, dropoff_point, status, created_at"
+      `
+      id,
+      from_city,
+      to_city,
+      travel_date,
+      preferred_time,
+      passenger_count,
+      pickup_point,
+      dropoff_point,
+      status,
+      created_at,
+      assigned_ride_id,
+      assigned_at,
+      assigned_ride:rides(
+        id,
+        from_city,
+        to_city,
+        travel_date,
+        travel_time,
+        price_per_seat,
+        pickup_point,
+        driver_name,
+        driver_phone,
+        vehicle_brand,
+        vehicle_model,
+        vehicle_color,
+        plate_number
+      )
+    `
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(4);
 
   const requests = (rideRequests || []) as RideRequest[];
+  const assignedRequests = requests.filter(
+    (request) => request.status === "assigned" && request.assigned_ride
+  );
 
   return (
     <main className="w-full overflow-x-hidden bg-[#061116] px-4 py-10 text-white sm:px-5 lg:px-12">
@@ -140,6 +193,87 @@ export default async function DashboardPage() {
             </div>
           </div>
         </section>
+
+        {assignedRequests.length > 0 && (
+          <section className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-6 md:p-8">
+            <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-400 sm:text-sm sm:tracking-[0.28em]">
+              Assigned Ride
+            </p>
+
+            <h2 className="mt-2 break-words text-3xl font-black">
+              Your confirmed trip details
+            </h2>
+
+            <div className="mt-6 grid gap-5">
+              {assignedRequests.map((request) => {
+                const ride = request.assigned_ride;
+
+                return (
+                  <div
+                    key={request.id}
+                    className="rounded-[1.7rem] border border-emerald-400/20 bg-[#061116]/70 p-6"
+                  >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div>
+                        <h3 className="text-2xl font-black">
+                          {ride?.from_city} → {ride?.to_city}
+                        </h3>
+
+                        <p className="mt-2 text-sm text-slate-300">
+                          {ride?.travel_date} • {ride?.travel_time}
+                        </p>
+
+                        <p className="mt-2 text-sm text-emerald-300">
+                          Assigned for {request.passenger_count} passenger
+                          {request.passenger_count > 1 ? "s" : ""}
+                        </p>
+                      </div>
+
+                      <span className="inline-flex w-fit rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-emerald-300">
+                        Assigned
+                      </span>
+                    </div>
+
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      <Info label="Driver" value={ride?.driver_name || "—"} />
+                      <Info
+                        label="Driver Phone"
+                        value={ride?.driver_phone || "—"}
+                      />
+                      <Info
+                        label="Vehicle"
+                        value={`${ride?.vehicle_color || ""} ${
+                          ride?.vehicle_brand || ""
+                        } ${ride?.vehicle_model || ""}`}
+                      />
+                      <Info label="Plate Number" value={ride?.plate_number || "—"} />
+                      <Info
+                        label="Pickup Point"
+                        value={ride?.pickup_point || request.pickup_point || "—"}
+                      />
+                      <Info
+                        label="Price Per Seat"
+                        value={ride?.price_per_seat ? `₦${ride.price_per_seat}` : "—"}
+                      />
+                      <Info
+                        label="Request ID"
+                        value={request.id.slice(0, 8)}
+                      />
+                      <Info
+                        label="Assigned On"
+                        value={
+                          request.assigned_at
+                            ? new Date(request.assigned_at).toLocaleDateString()
+                            : "—"
+                        }
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 sm:p-7 md:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-400 sm:text-sm sm:tracking-[0.28em]">
