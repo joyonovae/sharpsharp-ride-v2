@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
-  Car,
   CheckCircle2,
   Clock,
   FileText,
@@ -136,11 +135,12 @@ export default async function DashboardPage() {
     .limit(4);
 
   const requests = (rideRequests || []).map((request: any) => ({
-  ...request,
-  assigned_ride: Array.isArray(request.assigned_ride)
-    ? request.assigned_ride[0] || null
-    : request.assigned_ride || null,
-})) as RideRequest[];
+    ...request,
+    assigned_ride: Array.isArray(request.assigned_ride)
+      ? request.assigned_ride[0] || null
+      : request.assigned_ride || null,
+  })) as RideRequest[];
+
   const assignedRequests = requests.filter(
     (request) => request.status === "assigned" && request.assigned_ride
   );
@@ -241,10 +241,7 @@ export default async function DashboardPage() {
 
                     <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                       <Info label="Driver" value={ride?.driver_name || "—"} />
-                      <Info
-                        label="Driver Phone"
-                        value={ride?.driver_phone || "—"}
-                      />
+                      <Info label="Driver Phone" value={ride?.driver_phone || "—"} />
                       <Info
                         label="Vehicle"
                         value={`${ride?.vehicle_color || ""} ${
@@ -260,10 +257,7 @@ export default async function DashboardPage() {
                         label="Price Per Seat"
                         value={ride?.price_per_seat ? `₦${ride.price_per_seat}` : "—"}
                       />
-                      <Info
-                        label="Request ID"
-                        value={request.id.slice(0, 8)}
-                      />
+                      <Info label="Request ID" value={request.id.slice(0, 8)} />
                       <Info
                         label="Assigned On"
                         value={
@@ -289,19 +283,57 @@ export default async function DashboardPage() {
             How are you travelling today?
           </h2>
 
-          <div className="mt-6 grid gap-3 rounded-[1.7rem] border border-white/10 bg-white/5 p-4 sm:p-5 md:grid-cols-[1fr_1fr_1fr_0.8fr_auto] md:items-end">
-            <SearchBox label="From" placeholder="e.g. Abuja" />
-            <SearchBox label="To" placeholder="e.g. Lagos" />
-            <SearchBox label="Date" placeholder="Today" />
-            <SearchBox label="Passengers" placeholder="1 passenger" />
+          <form
+            action="/rides"
+            method="GET"
+            className="mt-6 grid gap-4 rounded-[2rem] border border-white/10 bg-white/5 p-5 lg:grid-cols-[1fr_1fr_1fr_0.8fr_auto] lg:items-end"
+          >
+            <SearchInput name="from" label="From" placeholder="e.g. Abuja" />
+            <SearchInput name="to" label="To" placeholder="e.g. Lagos" />
 
-            <Link
-              href="/request-ride"
-              className="flex h-14 items-center justify-center rounded-2xl bg-emerald-500 px-6 font-black text-[#04130c] transition hover:bg-emerald-400"
-            >
-              Request
-            </Link>
-          </div>
+            <div className="rounded-[1.7rem] border border-white/10 bg-white/5 px-5 py-5">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                Date
+              </label>
+              <input
+                type="date"
+                name="date"
+                className="mt-3 w-full bg-transparent text-xl font-bold text-white outline-none"
+              />
+            </div>
+
+            <div className="rounded-[1.7rem] border border-white/10 bg-white/5 px-5 py-5">
+              <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                Passengers
+              </label>
+              <select
+                name="passengers"
+                className="mt-3 w-full bg-transparent text-xl font-bold text-white outline-none"
+              >
+                {[1, 2, 3, 4, 5].map((count) => (
+                  <option key={count} value={count} className="bg-[#08141b]">
+                    {count} passenger{count > 1 ? "s" : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                type="submit"
+                className="flex h-[72px] items-center justify-center rounded-[1.7rem] bg-emerald-500 px-8 text-lg font-black text-[#04130c] transition hover:bg-emerald-400"
+              >
+                Search
+              </button>
+
+              <Link
+                href="/request-ride"
+                className="flex h-[56px] items-center justify-center rounded-[1.3rem] border border-white/10 bg-white/5 px-6 text-sm font-bold text-white transition hover:border-emerald-400 hover:text-emerald-400"
+              >
+                Request Ride
+              </Link>
+            </div>
+          </form>
         </section>
 
         <section>
@@ -354,9 +386,7 @@ export default async function DashboardPage() {
                       </p>
                       <p className="mt-2 text-sm text-slate-400">
                         {request.travel_date}
-                        {request.preferred_time
-                          ? ` • ${request.preferred_time}`
-                          : ""}
+                        {request.preferred_time ? ` • ${request.preferred_time}` : ""}
                       </p>
                     </div>
 
@@ -486,11 +516,7 @@ export default async function DashboardPage() {
               ) : (
                 <p className="mt-3 max-w-2xl break-words text-slate-300">
                   Your application is currently marked as{" "}
-                  <span
-                    className={`font-bold ${getStatusColor(
-                      application.status
-                    )}`}
-                  >
+                  <span className={`font-bold ${getStatusColor(application.status)}`}>
                     {application.status}
                   </span>
                   .
@@ -536,10 +562,7 @@ export default async function DashboardPage() {
                   application.vehicle_model || ""
                 }`}
               />
-              <Info
-                label="Plate Number"
-                value={application.plate_number || "—"}
-              />
+              <Info label="Plate Number" value={application.plate_number || "—"} />
               <Info label="Seats" value={application.seat_count || "—"} />
             </div>
           )}
@@ -576,6 +599,30 @@ export default async function DashboardPage() {
   );
 }
 
+function SearchInput({
+  name,
+  label,
+  placeholder,
+}: {
+  name: string;
+  label: string;
+  placeholder: string;
+}) {
+  return (
+    <div className="rounded-[1.7rem] border border-white/10 bg-white/5 px-5 py-5">
+      <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+        {label}
+      </label>
+      <input
+        type="text"
+        name={name}
+        placeholder={placeholder}
+        className="mt-3 w-full bg-transparent text-xl font-bold text-white outline-none placeholder:text-slate-500"
+      />
+    </div>
+  );
+}
+
 function Info({ label, value }: { label: string; value: unknown }) {
   return (
     <div className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -583,23 +630,6 @@ function Info({ label, value }: { label: string; value: unknown }) {
       <p className="mt-1 break-all font-bold text-white sm:break-words">
         {value ? String(value) : "—"}
       </p>
-    </div>
-  );
-}
-
-function SearchBox({
-  label,
-  placeholder,
-}: {
-  label: string;
-  placeholder: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
-        {label}
-      </p>
-      <p className="mt-1 font-bold text-white/80">{placeholder}</p>
     </div>
   );
 }

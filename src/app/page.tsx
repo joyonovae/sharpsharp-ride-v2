@@ -42,11 +42,7 @@ const routes = [
   ["Abuja", "Kano", "₦7,000"],
 ];
 
-const slides = [
-  "/hero/ride1.jpg",
-  "/hero/ride2.jpg",
-  "/hero/ride3.jpg",
-];
+const slides = ["/hero/ride1.jpg", "/hero/ride2.jpg", "/hero/ride3.jpg"];
 
 export default function HomePage() {
   const router = useRouter();
@@ -54,6 +50,7 @@ export default function HomePage() {
   const [fromCity, setFromCity] = useState("");
   const [toCity, setToCity] = useState("");
   const [travelDate, setTravelDate] = useState("");
+  const [passengers, setPassengers] = useState("1");
 
   useEffect(() => {
     const elements = document.querySelectorAll(".scroll-reveal");
@@ -86,6 +83,7 @@ export default function HomePage() {
     if (fromCity.trim()) params.set("from", fromCity.trim());
     if (toCity.trim()) params.set("to", toCity.trim());
     if (travelDate) params.set("date", travelDate);
+    if (passengers) params.set("passengers", passengers);
 
     const queryString = params.toString();
     router.push(queryString ? `/rides?${queryString}` : "/rides");
@@ -152,13 +150,13 @@ export default function HomePage() {
               Ride safely anywhere in Nigeria...
             </p>
 
-           <h1 className="max-w-3xl text-[2.55rem] font-black leading-[1.05] tracking-tight min-[390px]:text-[2.85rem] sm:text-6xl lg:text-7xl">
+            <h1 className="max-w-3xl text-[2.55rem] font-black leading-[1.05] tracking-tight min-[390px]:text-[2.85rem] sm:text-6xl lg:text-7xl">
               Find Your Next
               <br />
               SharpSharp Ride
             </h1>
 
-           <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 min-[390px]:text-lg min-[390px]:leading-8 sm:text-xl sm:leading-9">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 min-[390px]:text-lg min-[390px]:leading-8 sm:text-xl sm:leading-9">
               Book shared rides, rent available cars, and send packages across
               Nigeria from one simple platform.
             </p>
@@ -166,22 +164,24 @@ export default function HomePage() {
             <div className="mt-8 flex flex-wrap justify-start gap-3">
               <Link
                 href="/rides"
-                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6">
+                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
+              >
                 Shared Rides
               </Link>
 
               <Link
                 href="/rent"
-                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6">
+                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
+              >
                 Rent a Car
               </Link>
 
               <Link
-              href="/offer-a-ride"
-              className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6">
-              Offer a Ride
-            </Link>
-              
+                href="/offer-a-ride"
+                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
+              >
+                Offer a Ride
+              </Link>
             </div>
           </div>
 
@@ -200,9 +200,9 @@ export default function HomePage() {
                     <div
                       className="h-full w-full scale-105 bg-cover bg-center transition-transform duration-[6000ms] ease-linear hover:scale-110"
                       style={{
-  backgroundImage: `url('${slide}')`,
-  backgroundPosition: "center",
-}}
+                        backgroundImage: `url('${slide}')`,
+                        backgroundPosition: "center",
+                      }}
                     />
                   </div>
                 </SwiperSlide>
@@ -224,7 +224,7 @@ export default function HomePage() {
 
         <div className="relative z-20 mx-auto -mt-12 w-full max-w-6xl px-4 pb-16 sm:px-5 lg:-mt-20 lg:px-12">
           <div className="scroll-reveal rounded-[2rem] bg-white/95 p-4 shadow-[0_25px_60px_rgba(0,0,0,0.15)] backdrop-blur-xl md:p-5">
-            <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-center">
+            <div className="grid gap-3 lg:grid-cols-[1fr_1fr_1fr_0.8fr_auto] lg:items-center">
               <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
                   From
@@ -261,6 +261,24 @@ export default function HomePage() {
                 />
               </div>
 
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Passengers
+                </p>
+
+                <select
+                  value={passengers}
+                  onChange={(e) => setPassengers(e.target.value)}
+                  className="mt-1 w-full bg-transparent text-lg font-bold text-slate-900 outline-none"
+                >
+                  {[1, 2, 3, 4, 5].map((count) => (
+                    <option key={count} value={count}>
+                      {count} passenger{count > 1 ? "s" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <button
                 type="button"
                 onClick={handleHeroSearch}
@@ -274,69 +292,66 @@ export default function HomePage() {
       </section>
 
       {/* ABOUT SECTION */}
-<section className="bg-[#061116] px-5 py-16 text-white sm:py-20 lg:px-12">
-  <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
+      <section className="bg-[#061116] px-5 py-16 text-white sm:py-20 lg:px-12">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
+          <div className="scroll-reveal relative h-[350px] overflow-hidden rounded-[2rem] sm:h-[420px]">
+            <img
+              src="/about/about-hero.jpg"
+              alt="About SharpSharp Ride"
+              className="h-full w-full object-cover"
+            />
 
+            <div className="absolute inset-0 bg-[#061116]/50" />
 
-    {/* IMAGE SIDE */}
-    <div className="scroll-reveal relative h-[350px] overflow-hidden rounded-[2rem] sm:h-[420px]">
-      <img
-        src="/about/about-hero.jpg"
-        alt="About SharpSharp Ride"
-        className="h-full w-full object-cover"
-      />
+            <div className="absolute bottom-6 left-6 rounded-2xl bg-white/10 px-5 py-3 backdrop-blur">
+              <p className="text-sm font-bold text-white">
+                🚀 Fast Growing Platform
+              </p>
+              <p className="text-xs text-slate-300">
+                Trusted by riders across Nigeria
+              </p>
+            </div>
+          </div>
 
-      {/* OVERLAY */}
-      <div className="absolute inset-0 bg-[#061116]/50" />
+          <div className="scroll-reveal">
+            <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">
+              About SharpSharp Ride
+            </p>
 
-      {/* FLOATING CARD */}
-      <div className="absolute bottom-6 left-6 rounded-2xl bg-white/10 px-5 py-3 backdrop-blur">
-        <p className="text-sm font-bold text-white">🚀 Fast Growing Platform</p>
-        <p className="text-xs text-slate-300">Trusted by riders across Nigeria</p>
-      </div>
-    </div>
-    {/* TEXT SIDE */}
-    <div className="scroll-reveal">
-      <p className="text-sm font-bold uppercase tracking-widest text-emerald-400">
-        About SharpSharp Ride
-      </p>
+            <h2 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">
+              Built for How Nigerians Move
+            </h2>
 
-      <h2 className="mt-4 text-4xl font-black leading-tight sm:text-5xl">
-        Built for How Nigerians Move
-      </h2>
+            <p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">
+              SharpSharp Ride is a modern mobility platform designed to make
+              transportation across Nigeria faster, safer, and more affordable.
+              Whether you're booking a shared ride, renting a car, or sending a
+              package — everything is simplified in one place.
+            </p>
 
-      <p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">
-        SharpSharp Ride is a modern mobility platform designed to make
-        transportation across Nigeria faster, safer, and more affordable.
-        Whether you're booking a shared ride, renting a car, or sending a
-        package — everything is simplified in one place.
-      </p>
+            <p className="mt-4 max-w-xl text-base leading-7 text-slate-400">
+              We’re building a trusted network of drivers, riders, and
+              businesses — powered by technology and driven by reliability.
+            </p>
 
-      <p className="mt-4 max-w-xl text-base leading-7 text-slate-400">
-        We’re building a trusted network of drivers, riders, and businesses —
-        powered by technology and driven by reliability.
-      </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href="/about"
+                className="rounded-full bg-emerald-500 px-7 py-3 font-bold text-[#04130c] transition hover:bg-emerald-400"
+              >
+                Learn More
+              </Link>
 
-      {/* CTA BUTTONS */}
-      <div className="mt-8 flex flex-wrap gap-4">
-        <Link
-          href="/about"
-          className="rounded-full bg-emerald-500 px-7 py-3 font-bold text-[#04130c] transition hover:bg-emerald-400"
-        >
-          Learn More
-        </Link>
-
-        <Link
-          href="/contact"
-          className="rounded-full border border-white/15 px-7 py-3 font-bold transition hover:border-emerald-400 hover:text-emerald-400"
-        >
-          Contact Us
-        </Link>
-      </div>
-    </div>
-
-  </div>
-</section>
+              <Link
+                href="/contact"
+                className="rounded-full border border-white/15 px-7 py-3 font-bold transition hover:border-emerald-400 hover:text-emerald-400"
+              >
+                Contact Us
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* SERVICES */}
       <section className="bg-white px-5 py-14 text-[#061116] sm:py-20 lg:px-12">
@@ -373,70 +388,71 @@ export default function HomePage() {
       </section>
 
       {/* HOW IT WORKS */}
-<section className="relative overflow-hidden bg-[#061116] px-5 py-20 text-white sm:py-24 lg:bg-fixed lg:bg-[url('/hero/how-it-works-bg.jpg')] lg:bg-cover lg:bg-center lg:px-12">
-  <div className="absolute inset-0 bg-[#061116]/85 lg:bg-[#061116]/78" />
+      <section className="relative overflow-hidden bg-[#061116] px-5 py-20 text-white sm:py-24 lg:bg-fixed lg:bg-[url('/hero/how-it-works-bg.jpg')] lg:bg-cover lg:bg-center lg:px-12">
+        <div className="absolute inset-0 bg-[#061116]/85 lg:bg-[#061116]/78" />
 
-  <div className="relative mx-auto max-w-7xl text-center">
-    <div className="scroll-reveal">
-      <p className="text-sm font-bold uppercase tracking-[0.28em] text-emerald-400">
-        Simple Process
-      </p>
+        <div className="relative mx-auto max-w-7xl text-center">
+          <div className="scroll-reveal">
+            <p className="text-sm font-bold uppercase tracking-[0.28em] text-emerald-400">
+              Simple Process
+            </p>
 
-      <h2 className="mt-3 text-4xl font-black sm:text-5xl">
-        How SharpSharp Ride Works
-      </h2>
+            <h2 className="mt-3 text-4xl font-black sm:text-5xl">
+              How SharpSharp Ride Works
+            </h2>
 
-      <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-        Whether you’re booking a seat, renting a car, or sending a package,
-        SharpSharp Ride keeps the process simple, secure, and fast.
-      </p>
-    </div>
-
-    <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      {[
-        {
-          title: "Search Your Route",
-          desc: "Enter your pickup city, destination, and travel date to see available rides and transport options.",
-        },
-        {
-          title: "Choose & Book",
-          desc: "Compare available seats, prices, pickup points, and trip details before confirming your booking.",
-        },
-        {
-          title: "Pay Securely",
-          desc: "Complete your payment safely through Paystack. Your booking is only confirmed after payment is verified.",
-        },
-        {
-          title: "Move With Ease",
-          desc: "Get your booking record, seat confirmation, and trip details from your dashboard whenever you need them.",
-        },
-      ].map((step, index) => (
-        <div
-          key={step.title}
-          className="scroll-reveal rounded-[1.7rem] border border-white/10 bg-white/10 p-6 text-left backdrop-blur-md transition hover:-translate-y-2 hover:border-emerald-400/50 hover:bg-white/15"
-        >
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-xl font-black text-[#04130c]">
-            {index + 1}
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+              Whether you’re booking a seat, renting a car, or sending a
+              package, SharpSharp Ride keeps the process simple, secure, and
+              fast.
+            </p>
           </div>
 
-          <h3 className="mt-6 text-xl font-black">{step.title}</h3>
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: "Search Your Route",
+                desc: "Enter your pickup city, destination, and travel date to see available rides and transport options.",
+              },
+              {
+                title: "Choose & Book",
+                desc: "Compare available seats, prices, pickup points, and trip details before confirming your booking.",
+              },
+              {
+                title: "Pay Securely",
+                desc: "Complete your payment safely through Paystack. Your booking is only confirmed after payment is verified.",
+              },
+              {
+                title: "Move With Ease",
+                desc: "Get your booking record, seat confirmation, and trip details from your dashboard whenever you need them.",
+              },
+            ].map((step, index) => (
+              <div
+                key={step.title}
+                className="scroll-reveal rounded-[1.7rem] border border-white/10 bg-white/10 p-6 text-left backdrop-blur-md transition hover:-translate-y-2 hover:border-emerald-400/50 hover:bg-white/15"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-xl font-black text-[#04130c]">
+                  {index + 1}
+                </div>
 
-          <p className="mt-3 text-sm leading-6 text-slate-300">
-            {step.desc}
-          </p>
+                <h3 className="mt-6 text-xl font-black">{step.title}</h3>
+
+                <p className="mt-3 text-sm leading-6 text-slate-300">
+                  {step.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="scroll-reveal mx-auto mt-12 max-w-3xl rounded-[1.7rem] border border-emerald-400/20 bg-emerald-500/10 p-6 backdrop-blur">
+            <p className="text-base font-medium leading-7 text-emerald-100">
+              Fast bookings. Verified drivers. Secure payments.
+              <br />
+              Everything you need to move around Nigeria — all in one place.
+            </p>
+          </div>
         </div>
-      ))}
-    </div>
-
-    <div className="scroll-reveal mx-auto mt-12 max-w-3xl rounded-[1.7rem] border border-emerald-400/20 bg-emerald-500/10 p-6 backdrop-blur">
-      <p className="text-base font-medium leading-7 text-emerald-100">
-    Fast bookings. Verified drivers. Secure payments.
-    <br />
-    Everything you need to move around Nigeria — all in one place.
-  </p>
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* ROUTES */}
       <section className="bg-white px-5 py-14 text-[#061116] sm:py-20 lg:px-12">
@@ -450,107 +466,109 @@ export default function HomePage() {
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {routes.map(([from, to, price]) => {
-  const href = `/rides?from=${encodeURIComponent(
-    from
-  )}&to=${encodeURIComponent(to)}`;
+              const href = `/rides?from=${encodeURIComponent(
+                from
+              )}&to=${encodeURIComponent(to)}`;
 
-  return (
-    <Link
-      key={`${from}-${to}`}
-      href={href}
-      className="scroll-reveal block rounded-2xl border p-5 transition hover:-translate-y-2 hover:border-emerald-400 hover:shadow-lg"
-    >
-      <h3 className="font-black">
-        {from} → {to}
-      </h3>
+              return (
+                <Link
+                  key={`${from}-${to}`}
+                  href={href}
+                  className="scroll-reveal block rounded-2xl border p-5 transition hover:-translate-y-2 hover:border-emerald-400 hover:shadow-lg"
+                >
+                  <h3 className="font-black">
+                    {from} → {to}
+                  </h3>
 
-      <p className="mt-2 font-bold text-emerald-600">From {price}</p>
-      <p className="text-sm text-slate-500">per seat</p>
+                  <p className="mt-2 font-bold text-emerald-600">
+                    From {price}
+                  </p>
+                  <p className="text-sm text-slate-500">per seat</p>
 
-      <p className="mt-4 text-sm font-bold text-emerald-600">
-        View rides →
-      </p>
-    </Link>
-  );
-})}
+                  <p className="mt-4 text-sm font-bold text-emerald-600">
+                    View rides →
+                  </p>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* TRUST + SAFETY */}
-<section className="bg-[#061116] px-5 py-16 text-white sm:py-20 lg:px-12">
-  <div className="mx-auto max-w-7xl">
-    <div className="scroll-reveal text-center">
-      <p className="text-sm font-bold uppercase tracking-[0.28em] text-emerald-400">
-        Travel With Confidence
-      </p>
+      <section className="bg-[#061116] px-5 py-16 text-white sm:py-20 lg:px-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="scroll-reveal text-center">
+            <p className="text-sm font-bold uppercase tracking-[0.28em] text-emerald-400">
+              Travel With Confidence
+            </p>
 
-      <h2 className="mt-3 text-3xl font-black sm:text-5xl">
-        Know Who You’re Travelling With
-      </h2>
+            <h2 className="mt-3 text-3xl font-black sm:text-5xl">
+              Know Who You’re Travelling With
+            </h2>
 
-      <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
-        We help make every trip safer by giving riders access to verified driver
-        details, vehicle information, secure payments, and trip records before
-        they book.
-      </p>
-    </div>
-
-    <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-      {[
-        {
-          title: "Verified Drivers",
-          desc: "Drivers must apply and get approved before they can offer rides on SharpSharp Ride.",
-          icon: "✅",
-        },
-        {
-          title: "Driver Profiles",
-          desc: "View driver details, phone number, vehicle type, plate number, and profile information before booking.",
-          icon: "👤",
-        },
-        {
-          title: "Secure Payments",
-          desc: "Payments are processed securely, and bookings are confirmed only after payment verification.",
-          icon: "💳",
-        },
-        {
-          title: "Trip Records",
-          desc: "Your bookings, routes, payment reference, and ride details stay available from your dashboard.",
-          icon: "📄",
-        },
-      ].map((item) => (
-        <div
-          key={item.title}
-          className="scroll-reveal rounded-[1.7rem] border border-white/10 bg-white/5 p-6 transition hover:-translate-y-2 hover:border-emerald-400/50 hover:bg-white/10"
-        >
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-2xl">
-            {item.icon}
+            <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg">
+              We help make every trip safer by giving riders access to verified
+              driver details, vehicle information, secure payments, and trip
+              records before they book.
+            </p>
           </div>
 
-          <h3 className="mt-6 text-xl font-black text-emerald-400">
-            {item.title}
-          </h3>
+          <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: "Verified Drivers",
+                desc: "Drivers must apply and get approved before they can offer rides on SharpSharp Ride.",
+                icon: "✅",
+              },
+              {
+                title: "Driver Profiles",
+                desc: "View driver details, phone number, vehicle type, plate number, and profile information before booking.",
+                icon: "👤",
+              },
+              {
+                title: "Secure Payments",
+                desc: "Payments are processed securely, and bookings are confirmed only after payment verification.",
+                icon: "💳",
+              },
+              {
+                title: "Trip Records",
+                desc: "Your bookings, routes, payment reference, and ride details stay available from your dashboard.",
+                icon: "📄",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="scroll-reveal rounded-[1.7rem] border border-white/10 bg-white/5 p-6 transition hover:-translate-y-2 hover:border-emerald-400/50 hover:bg-white/10"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500 text-2xl">
+                  {item.icon}
+                </div>
 
-          <p className="mt-3 text-sm leading-6 text-slate-300">
-            {item.desc}
-          </p>
+                <h3 className="mt-6 text-xl font-black text-emerald-400">
+                  {item.title}
+                </h3>
+
+                <p className="mt-3 text-sm leading-6 text-slate-300">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="scroll-reveal mt-10 rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-6 text-center md:p-8">
+            <h3 className="text-2xl font-black">
+              Built for safer shared movement across Nigeria
+            </h3>
+
+            <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-emerald-100 sm:text-base">
+              Whether you’re booking a seat, offering a ride, renting a car, or
+              sending a package, SharpSharp Ride is designed to give users more
+              transparency, trust, and control from start to finish.
+            </p>
+          </div>
         </div>
-      ))}
-    </div>
-
-    <div className="scroll-reveal mt-10 rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-6 text-center md:p-8">
-      <h3 className="text-2xl font-black">
-        Built for safer shared movement across Nigeria
-      </h3>
-
-      <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-emerald-100 sm:text-base">
-        Whether you’re booking a seat, offering a ride, renting a car, or sending
-        a package, SharpSharp Ride is designed to give users more transparency,
-        trust, and control from start to finish.
-      </p>
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* PARTNER CTA */}
       <section className="px-5 py-14 sm:py-20 lg:px-12">
