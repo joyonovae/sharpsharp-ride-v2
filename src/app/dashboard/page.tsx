@@ -568,6 +568,13 @@ export default async function DashboardPage() {
               title="Delivery"
               desc="Delivery enquiries and updates."
             />
+
+            <ActionCard
+             href="/dashboard/notifications"
+             icon={<CheckCircle2 className="h-6 w-6" />}
+             title="Notifications"
+             desc="View ride updates, assignments, and account alerts."
+             />
           </div>
         </section>
 
