@@ -570,7 +570,7 @@ export default async function DashboardPage() {
             />
 
             <ActionCard
-             href="/dashboard/notifications"
+             href="/notifications"
              icon={<CheckCircle2 className="h-6 w-6" />}
              title="Notifications"
              desc="View ride updates, assignments, and account alerts."
