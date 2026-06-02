@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
+  Bell,
   CheckCircle2,
   Clock,
   FileText,
@@ -62,6 +63,16 @@ type RideRequest = {
   assigned_ride?: AssignedRide | null;
 };
 
+type Notification = {
+  id: string;
+  title: string;
+  message: string;
+  type: string | null;
+  is_read: boolean;
+  action_url: string | null;
+  created_at: string;
+};
+
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -96,6 +107,16 @@ export default async function DashboardPage() {
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  const { data: notificationsData } = await supabase
+    .from("notifications")
+    .select("id, title, message, type, is_read, action_url, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const notifications = (notificationsData || []) as Notification[];
+  const unreadCount = notifications.filter((item) => !item.is_read).length;
 
   const { data: rideRequests } = await supabase
     .from("ride_requests")
@@ -160,8 +181,8 @@ export default async function DashboardPage() {
               </h1>
 
               <p className="mt-4 max-w-2xl break-words text-sm leading-7 text-slate-300 sm:text-base">
-                Manage your rides, requests, bookings, profile, and driver
-                application from one simple place.
+                Manage your rides, requests, bookings, notifications, profile,
+                and driver application from one simple place.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
@@ -197,6 +218,85 @@ export default async function DashboardPage() {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 sm:p-7 md:p-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-400 sm:text-sm sm:tracking-[0.28em]">
+                Notifications
+              </p>
+
+              <h2 className="mt-2 break-words text-3xl font-black">
+                Latest updates
+              </h2>
+            </div>
+
+            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-5 py-3 text-sm font-bold text-emerald-300">
+              <Bell className="h-4 w-4" />
+              {unreadCount} unread
+            </div>
+          </div>
+
+          {notifications.length === 0 ? (
+            <div className="mt-6 rounded-[1.7rem] border border-dashed border-white/15 bg-white/5 p-6">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-[#04130c]">
+                <Bell className="h-6 w-6" />
+              </div>
+
+              <h3 className="mt-5 text-xl font-black">No notifications yet</h3>
+
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
+                Ride updates, booking alerts, driver approval messages, and
+                important account updates will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-6 grid gap-4">
+              {notifications.map((notification) => {
+                const content = (
+                  <div
+                    className={`rounded-[1.4rem] border p-5 transition ${
+                      notification.is_read
+                        ? "border-white/10 bg-white/5"
+                        : "border-emerald-400/25 bg-emerald-500/10"
+                    }`}
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <h3 className="break-words text-lg font-black">
+                          {notification.title}
+                        </h3>
+                        <p className="mt-2 break-words text-sm leading-6 text-slate-300">
+                          {notification.message}
+                        </p>
+                      </div>
+
+                      {!notification.is_read && (
+                        <span className="inline-flex w-fit rounded-full bg-emerald-500 px-3 py-1 text-xs font-black text-[#04130c]">
+                          New
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="mt-4 text-xs text-slate-500">
+                      {new Date(notification.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                );
+
+                if (notification.action_url) {
+                  return (
+                    <Link key={notification.id} href={notification.action_url}>
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return <div key={notification.id}>{content}</div>;
+              })}
+            </div>
+          )}
         </section>
 
         {assignedRequests.length > 0 && (
@@ -255,7 +355,9 @@ export default async function DashboardPage() {
                       />
                       <Info
                         label="Price Per Seat"
-                        value={ride?.price_per_seat ? `₦${ride.price_per_seat}` : "—"}
+                        value={
+                          ride?.price_per_seat ? `₦${ride.price_per_seat}` : "—"
+                        }
                       />
                       <Info label="Request ID" value={request.id.slice(0, 8)} />
                       <Info
@@ -386,7 +488,9 @@ export default async function DashboardPage() {
                       </p>
                       <p className="mt-2 text-sm text-slate-400">
                         {request.travel_date}
-                        {request.preferred_time ? ` • ${request.preferred_time}` : ""}
+                        {request.preferred_time
+                          ? ` • ${request.preferred_time}`
+                          : ""}
                       </p>
                     </div>
 
@@ -516,7 +620,11 @@ export default async function DashboardPage() {
               ) : (
                 <p className="mt-3 max-w-2xl break-words text-slate-300">
                   Your application is currently marked as{" "}
-                  <span className={`font-bold ${getStatusColor(application.status)}`}>
+                  <span
+                    className={`font-bold ${getStatusColor(
+                      application.status
+                    )}`}
+                  >
                     {application.status}
                   </span>
                   .

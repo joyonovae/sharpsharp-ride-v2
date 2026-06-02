@@ -1,7 +1,10 @@
+// src/app/admin/ride-requests/actions.ts
+
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/notifications/createNotification";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -36,6 +39,12 @@ export async function markRideRequestMatched(formData: FormData) {
     throw new Error("Missing request ID");
   }
 
+  const { data: request } = await supabase
+    .from("ride_requests")
+    .select("id, user_id, from_city, to_city, travel_date")
+    .eq("id", requestId)
+    .single();
+
   await supabase
     .from("ride_requests")
     .update({
@@ -44,6 +53,16 @@ export async function markRideRequestMatched(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", requestId);
+
+  if (request?.user_id) {
+    await createNotification({
+      userId: request.user_id,
+      title: "Ride request matched",
+      message: `Your ${request.from_city} → ${request.to_city} ride request for ${request.travel_date} has been matched. We will update you once a ride is assigned.`,
+      type: "ride_request_matched",
+      actionUrl: "/dashboard",
+    });
+  }
 
   revalidatePath("/admin/ride-requests");
   revalidatePath("/dashboard");
@@ -58,6 +77,12 @@ export async function cancelRideRequest(formData: FormData) {
     throw new Error("Missing request ID");
   }
 
+  const { data: request } = await supabase
+    .from("ride_requests")
+    .select("id, user_id, from_city, to_city, travel_date")
+    .eq("id", requestId)
+    .single();
+
   await supabase
     .from("ride_requests")
     .update({
@@ -66,6 +91,16 @@ export async function cancelRideRequest(formData: FormData) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", requestId);
+
+  if (request?.user_id) {
+    await createNotification({
+      userId: request.user_id,
+      title: "Ride request cancelled",
+      message: `Your ${request.from_city} → ${request.to_city} ride request for ${request.travel_date} was cancelled. Please contact support if you need help.`,
+      type: "ride_request_cancelled",
+      actionUrl: "/dashboard",
+    });
+  }
 
   revalidatePath("/admin/ride-requests");
   revalidatePath("/dashboard");
@@ -82,7 +117,6 @@ export async function assignRideToRequest(formData: FormData) {
     throw new Error("Missing assignment details");
   }
 
-  // GET REQUEST
   const { data: request, error: requestError } = await supabase
     .from("ride_requests")
     .select("*")
@@ -93,7 +127,6 @@ export async function assignRideToRequest(formData: FormData) {
     throw new Error("Ride request not found");
   }
 
-  // GET RIDE
   const { data: ride, error: rideError } = await supabase
     .from("rides")
     .select("*")
@@ -107,14 +140,12 @@ export async function assignRideToRequest(formData: FormData) {
   const passengersNeeded = Number(request.passenger_count || 1);
   const availableSeats = Number(ride.available_seats || 0);
 
-  // PREVENT OVERBOOKING
   if (availableSeats < passengersNeeded) {
     throw new Error("Not enough available seats");
   }
 
   const updatedSeats = availableSeats - passengersNeeded;
 
-  // UPDATE REQUEST
   const { error: requestUpdateError } = await supabase
     .from("ride_requests")
     .update({
@@ -131,7 +162,6 @@ export async function assignRideToRequest(formData: FormData) {
     throw new Error(requestUpdateError.message);
   }
 
-  // UPDATE RIDE SEATS
   const { error: rideUpdateError } = await supabase
     .from("rides")
     .update({
@@ -141,6 +171,30 @@ export async function assignRideToRequest(formData: FormData) {
 
   if (rideUpdateError) {
     throw new Error(rideUpdateError.message);
+  }
+
+  if (request.user_id) {
+    await createNotification({
+      userId: request.user_id,
+      title: "Your ride has been assigned",
+      message: `Your ${request.from_city} → ${request.to_city} ride request has been assigned. Driver: ${
+        ride.driver_name || "Assigned driver"
+      }. Vehicle: ${ride.vehicle_brand || ""} ${ride.vehicle_model || ""}.`,
+      type: "ride_assigned",
+      actionUrl: "/dashboard",
+    });
+  }
+
+  if (driverId) {
+    await createNotification({
+      userId: driverId,
+      title: "New passenger assigned",
+      message: `${passengersNeeded} passenger${
+        passengersNeeded > 1 ? "s have" : " has"
+      } been assigned to your ${ride.from_city} → ${ride.to_city} ride.`,
+      type: "passenger_assigned",
+      actionUrl: "/dashboard",
+    });
   }
 
   revalidatePath("/admin/ride-requests");
