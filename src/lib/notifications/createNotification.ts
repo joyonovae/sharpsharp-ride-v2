@@ -1,22 +1,24 @@
 import { createClient } from "@/lib/supabase/server";
 
-export async function createNotification({
-  userId,
-  title,
-  message,
-  type = "general",
-  actionUrl,
-}: {
+type CreateNotificationParams = {
   userId: string;
   title: string;
   message: string;
   type?: string;
-  actionUrl?: string;
-}) {
+  link?: string | null;
+};
+
+export async function createNotification({
+  userId,
+  title,
+  message,
+  type = "info",
+  link = null,
+}: CreateNotificationParams) {
   const supabase = await createClient();
 
   if (!userId || !title || !message) {
-    return { error: "Missing notification fields" };
+    return;
   }
 
   const { error } = await supabase.from("notifications").insert({
@@ -24,14 +26,11 @@ export async function createNotification({
     title,
     message,
     type,
-    action_url: actionUrl || null,
+    link,
     is_read: false,
   });
 
   if (error) {
-    console.error("Notification error:", error.message);
-    return { error: error.message };
+    console.error("Notification creation failed:", error.message);
   }
-
-  return { success: true };
 }
