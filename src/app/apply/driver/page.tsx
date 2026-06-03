@@ -110,6 +110,16 @@ export default function ApplyDriverPage() {
         return;
       }
 
+      await supabase.from("notifications").insert({
+        user_id: user.id,
+        title: "Driver Application Submitted",
+        message:
+          "Your driver application has been received and is currently under review.",
+        type: "driver_application",
+        link: "/apply/driver/review",
+        is_read: false,
+      });
+
       window.location.href = "/apply/driver/review";
     } catch {
       setErrorMessage("Something went wrong. Please try again.");

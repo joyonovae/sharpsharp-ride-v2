@@ -38,6 +38,7 @@ function RequestRideContent() {
   const initialFrom = searchParams.get("from") || "";
   const initialTo = searchParams.get("to") || "";
   const initialDate = searchParams.get("date") || "";
+  const initialPassengers = searchParams.get("passengers") || "1";
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -49,7 +50,7 @@ function RequestRideContent() {
     to_city: initialTo,
     travel_date: initialDate,
     preferred_time: "",
-    passenger_count: "1",
+    passenger_count: initialPassengers,
     pickup_point: "",
     dropoff_point: "",
     trip_notes: "",
@@ -90,13 +91,22 @@ function RequestRideContent() {
       status: "pending",
     });
 
-    setLoading(false);
-
     if (insertError) {
+      setLoading(false);
       setError(insertError.message);
       return;
     }
 
+    await supabase.from("notifications").insert({
+      user_id: user.id,
+      title: "Ride request received",
+      message: `Your ride request from ${form.from_city} to ${form.to_city} has been received and is being reviewed.`,
+      type: "ride_request_submitted",
+      is_read: false,
+      link: "/notifications",
+    });
+
+    setLoading(false);
     router.push("/dashboard");
     router.refresh();
   }

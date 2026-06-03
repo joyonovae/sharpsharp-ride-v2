@@ -47,8 +47,20 @@ export async function approveDriver(formData: FormData) {
     })
     .eq("id", userId);
 
+  await supabase.from("notifications").insert({
+    user_id: userId,
+    title: "Driver Application Approved",
+    message:
+      "Congratulations. Your driver application has been approved. You can now offer rides.",
+    type: "driver_application",
+    link: "/offer-a-ride/create",
+    is_read: false,
+  });
+
   revalidatePath("/admin/driver-applications");
   revalidatePath("/admin");
+  revalidatePath("/notifications");
+  revalidatePath("/dashboard");
 }
 
 export async function rejectDriver(formData: FormData) {
@@ -75,6 +87,18 @@ export async function rejectDriver(formData: FormData) {
     })
     .eq("id", userId);
 
+  await supabase.from("notifications").insert({
+    user_id: userId,
+    title: "Driver Application Rejected",
+    message:
+      "Your application was not approved at this time. Please review and reapply.",
+    type: "driver_application",
+    link: "/apply/driver",
+    is_read: false,
+  });
+
   revalidatePath("/admin/driver-applications");
   revalidatePath("/admin");
+  revalidatePath("/notifications");
+  revalidatePath("/dashboard");
 }
