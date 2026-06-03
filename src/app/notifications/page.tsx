@@ -2,12 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Bell, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { markNotificationsAsRead } from "./actions";
 
 function getTypeLabel(type?: string | null) {
   if (type === "ride_assigned") return "Ride Assigned";
   if (type === "ride_request_matched") return "Ride Matched";
   if (type === "ride_request_cancelled") return "Ride Cancelled";
+  if (type === "driver_application") return "Driver Application";
   return "Notification";
 }
 
@@ -26,8 +26,11 @@ export default async function NotificationsPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  // Mark all unread notifications as read
-  await markNotificationsAsRead();
+  await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("user_id", user.id)
+    .eq("is_read", false);
 
   return (
     <main className="min-h-screen bg-[#061116] px-4 py-10 text-white sm:px-6 lg:px-10">
@@ -92,7 +95,9 @@ export default async function NotificationsPage() {
                     </p>
 
                     <p className="mt-3 text-xs text-slate-500">
-                      {new Date(notification.created_at).toLocaleString()}
+                      {notification.created_at
+                        ? new Date(notification.created_at).toLocaleString()
+                        : ""}
                     </p>
                   </div>
 
