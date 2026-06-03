@@ -175,6 +175,13 @@ export async function assignRideToRequest(formData: FormData) {
   if (rideUpdateError) {
     throw new Error(rideUpdateError.message);
   }
+  
+  await createNotification({
+  userId: request.user_id,
+  title: "Ride Assigned",
+  message: `Your ride request from ${request.from_city} to ${request.to_city} has been assigned to a driver.`,
+  type: "ride_assigned",
+});
 
   // CREATE NOTIFICATION
   if (request.user_id) {

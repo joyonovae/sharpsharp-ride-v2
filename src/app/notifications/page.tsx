@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Bell, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { markNotificationsAsRead } from "./actions";
 
 function getTypeLabel(type?: string | null) {
   if (type === "ride_assigned") return "Ride Assigned";
@@ -25,6 +26,9 @@ export default async function NotificationsPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  // Mark all unread notifications as read
+  await markNotificationsAsRead();
+
   return (
     <main className="min-h-screen bg-[#061116] px-4 py-10 text-white sm:px-6 lg:px-10">
       <div className="mx-auto max-w-5xl space-y-8">
@@ -47,16 +51,22 @@ export default async function NotificationsPage() {
           <h1 className="mt-3 text-4xl font-black">Your Updates</h1>
 
           <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
-            See updates about your ride requests, assigned rides, bookings, and account activity.
+            See updates about your ride requests, assigned rides, bookings,
+            and account activity.
           </p>
         </section>
 
         {!notifications || notifications.length === 0 ? (
           <section className="rounded-[2rem] border border-dashed border-white/15 bg-white/5 p-8">
             <CheckCircle2 className="h-10 w-10 text-emerald-400" />
-            <h2 className="mt-5 text-2xl font-black">No notifications yet</h2>
+
+            <h2 className="mt-5 text-2xl font-black">
+              No notifications yet
+            </h2>
+
             <p className="mt-2 text-sm leading-6 text-slate-400">
-              Updates will appear here when something important happens on your account.
+              Updates will appear here when something important happens on your
+              account.
             </p>
           </section>
         ) : (
@@ -79,6 +89,10 @@ export default async function NotificationsPage() {
 
                     <p className="mt-2 text-sm leading-6 text-slate-300">
                       {notification.message}
+                    </p>
+
+                    <p className="mt-3 text-xs text-slate-500">
+                      {new Date(notification.created_at).toLocaleString()}
                     </p>
                   </div>
 

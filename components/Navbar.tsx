@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Bell } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type ProfileRow = {
@@ -21,6 +22,7 @@ export default function Navbar() {
 
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -53,6 +55,16 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  async function loadUnreadCount(userId: string) {
+    const { count } = await supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("is_read", false);
+
+    setUnreadCount(count || 0);
+  }
+
   useEffect(() => {
     let mounted = true;
 
@@ -73,9 +85,13 @@ export default function Navbar() {
           .eq("id", currentUser.id)
           .maybeSingle<ProfileRow>();
 
-        if (mounted) setUserRole(profile?.role ?? null);
+        if (mounted) {
+          setUserRole(profile?.role ?? null);
+          await loadUnreadCount(currentUser.id);
+        }
       } else {
         setUserRole(null);
+        setUnreadCount(0);
       }
 
       setLoading(false);
@@ -100,8 +116,11 @@ export default function Navbar() {
           .then(({ data }) => {
             if (mounted) setUserRole(data?.role ?? null);
           });
+
+        loadUnreadCount(currentUser.id);
       } else {
         setUserRole(null);
+        setUnreadCount(0);
       }
     });
 
@@ -115,6 +134,7 @@ export default function Navbar() {
     await supabase.auth.signOut();
     setUser(null);
     setUserRole(null);
+    setUnreadCount(0);
     setAccountOpen(false);
     setMobileOpen(false);
     router.replace("/");
@@ -179,6 +199,23 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3 overflow-visible">
+          {!loading && user && (
+            <Link
+              href="/notifications"
+              onClick={closeMenus}
+              className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:border-emerald-400/40 hover:bg-white/10 md:inline-flex"
+              aria-label="Notifications"
+            >
+              <Bell className="h-5 w-5" />
+
+              {unreadCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[0.65rem] font-black text-[#04130c]">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </Link>
+          )}
+
           {!loading && user ? (
             <div
               ref={dropdownRef}
@@ -203,6 +240,10 @@ export default function Navbar() {
                     onClick={closeMenus}
                   >
                     My Bookings
+                  </DropdownLink>
+
+                  <DropdownLink href="/notifications" onClick={closeMenus}>
+                    Notifications {unreadCount > 0 ? `(${unreadCount})` : ""}
                   </DropdownLink>
 
                   {isAdmin && (
@@ -311,6 +352,14 @@ export default function Navbar() {
                       onClick={closeMenus}
                     >
                       My Bookings
+                    </MobileLink>
+
+                    <MobileLink
+                      href="/notifications"
+                      pathname={pathname}
+                      onClick={closeMenus}
+                    >
+                      Notifications {unreadCount > 0 ? `(${unreadCount})` : ""}
                     </MobileLink>
 
                     <button
