@@ -120,6 +120,10 @@ export default function ApplyDriverPage() {
         is_read: false,
       });
 
+      await fetch("/api/emails/driver-application-submitted", {
+        method: "POST",
+      });
+
       window.location.href = "/apply/driver/review";
     } catch {
       setErrorMessage("Something went wrong. Please try again.");
