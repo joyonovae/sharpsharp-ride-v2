@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { sendDriverStatusEmail } from "@/lib/email/sendDriverStatusEmail";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -31,6 +32,18 @@ export async function approveDriver(formData: FormData) {
 
   if (!appId || !userId) throw new Error("Missing application details");
 
+  const { data: application } = await supabase
+    .from("driver_applications")
+    .select("full_name")
+    .eq("id", appId)
+    .single();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .single();
+
   await supabase
     .from("driver_applications")
     .update({
@@ -57,6 +70,14 @@ export async function approveDriver(formData: FormData) {
     is_read: false,
   });
 
+  if (profile?.email) {
+    await sendDriverStatusEmail(
+      profile.email,
+      application?.full_name || "Driver",
+      "approved"
+    );
+  }
+
   revalidatePath("/admin/driver-applications");
   revalidatePath("/admin");
   revalidatePath("/notifications");
@@ -70,6 +91,18 @@ export async function rejectDriver(formData: FormData) {
   const userId = String(formData.get("userId") || "");
 
   if (!appId || !userId) throw new Error("Missing application details");
+
+  const { data: application } = await supabase
+    .from("driver_applications")
+    .select("full_name")
+    .eq("id", appId)
+    .single();
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", userId)
+    .single();
 
   await supabase
     .from("driver_applications")
@@ -96,6 +129,14 @@ export async function rejectDriver(formData: FormData) {
     link: "/apply/driver",
     is_read: false,
   });
+
+  if (profile?.email) {
+    await sendDriverStatusEmail(
+      profile.email,
+      application?.full_name || "Driver",
+      "rejected"
+    );
+  }
 
   revalidatePath("/admin/driver-applications");
   revalidatePath("/admin");
