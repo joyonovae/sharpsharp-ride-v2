@@ -2,6 +2,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { approveDriver, rejectDriver } from "./actions";
+import ApproveDriverButton from "./ApproveDriverButton";
 import {
   Car,
   CheckCircle2,
@@ -218,14 +219,7 @@ export default async function AdminDriverApplicationsPage() {
 
                     {app.status === "pending" && (
                       <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                        <form action={approveDriver}>
-                          <input type="hidden" name="appId" value={app.id} />
-
-                          <button className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-6 py-3 font-bold text-[#04130c] transition hover:bg-emerald-400 sm:w-auto">
-                            <CheckCircle2 className="h-5 w-5" />
-                            Approve Driver
-                          </button>
-                        </form>
+                        <ApproveDriverButton appId={app.id} />
 
                         <form action={rejectDriver}>
                           <input type="hidden" name="appId" value={app.id} />
