@@ -24,6 +24,39 @@ async function requireAdmin() {
   return supabase;
 }
 
+async function fetchApplicationAndProfile(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  appId: string
+) {
+  const { data: application, error: applicationError } = await supabase
+    .from("driver_applications")
+    .select("id,user_id,full_name,status")
+    .eq("id", appId)
+    .maybeSingle();
+
+  if (applicationError) {
+    console.error("Driver application fetch failed:", applicationError);
+    throw new Error(applicationError.message);
+  }
+
+  if (!application?.user_id) {
+    throw new Error("Driver application was not found or has no user_id.");
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id,email")
+    .eq("id", application.user_id)
+    .maybeSingle();
+
+  if (profileError) {
+    console.error("Driver profile fetch failed:", profileError);
+    throw new Error(profileError.message);
+  }
+
+  return { application, profile };
+}
+
 export async function approveDriver(formData: FormData) {
   const supabase = await requireAdmin();
 
@@ -31,31 +64,10 @@ export async function approveDriver(formData: FormData) {
 
   if (!appId) throw new Error("Missing application details");
 
-  const { data: application, error: applicationFetchError } = await supabase
-    .from("driver_applications")
-    .select("id,user_id,full_name")
-    .eq("id", appId)
-    .maybeSingle();
-
-  if (applicationFetchError) {
-    console.error("Approve driver application fetch failed:", applicationFetchError);
-    throw new Error(applicationFetchError.message);
-  }
-
-  if (!application?.user_id) {
-    throw new Error("Driver application user ID is missing.");
-  }
-
-  const { data: profile, error: profileFetchError } = await supabase
-    .from("profiles")
-    .select("id,email")
-    .eq("id", application.user_id)
-    .maybeSingle();
-
-  if (profileFetchError) {
-    console.error("Approve driver profile fetch failed:", profileFetchError);
-    throw new Error(profileFetchError.message);
-  }
+  const { application, profile } = await fetchApplicationAndProfile(
+    supabase,
+    appId
+  );
 
   const { error: applicationUpdateError } = await supabase
     .from("driver_applications")
@@ -63,10 +75,10 @@ export async function approveDriver(formData: FormData) {
       status: "approved",
       admin_note: "Driver approved by admin.",
     })
-    .eq("id", appId);
+    .eq("id", application.id);
 
   if (applicationUpdateError) {
-    console.error("Approve driver application update failed:", applicationUpdateError);
+    console.error("Driver application approval failed:", applicationUpdateError);
     throw new Error(applicationUpdateError.message);
   }
 
@@ -79,11 +91,10 @@ export async function approveDriver(formData: FormData) {
     .eq("id", application.user_id);
 
   if (profileUpdateError) {
-    console.error("Approve driver profile update failed:", profileUpdateError);
-    throw new Error(profileUpdateError.message);
+    console.error("Driver profile approval failed:", profileUpdateError);
   }
 
-  const { error: notificationError } = await supabase.from("notifications").insert({
+  await supabase.from("notifications").insert({
     user_id: application.user_id,
     title: "Driver Application Approved",
     message:
@@ -93,23 +104,12 @@ export async function approveDriver(formData: FormData) {
     is_read: false,
   });
 
-  if (notificationError) {
-    console.error("Approve driver notification failed:", notificationError);
-  }
-
   if (profile?.email) {
-    const emailResult = await sendDriverStatusEmail(
+    await sendDriverStatusEmail(
       profile.email,
       application.full_name || "Driver",
       "approved"
     );
-
-    console.log("Approve driver email result:", emailResult);
-  } else {
-    console.error("Approve driver email skipped: profile email is missing", {
-      appId,
-      userId: application.user_id,
-    });
   }
 
   revalidatePath("/admin/driver-applications");
@@ -125,31 +125,10 @@ export async function rejectDriver(formData: FormData) {
 
   if (!appId) throw new Error("Missing application details");
 
-  const { data: application, error: applicationFetchError } = await supabase
-    .from("driver_applications")
-    .select("id,user_id,full_name")
-    .eq("id", appId)
-    .maybeSingle();
-
-  if (applicationFetchError) {
-    console.error("Reject driver application fetch failed:", applicationFetchError);
-    throw new Error(applicationFetchError.message);
-  }
-
-  if (!application?.user_id) {
-    throw new Error("Driver application user ID is missing.");
-  }
-
-  const { data: profile, error: profileFetchError } = await supabase
-    .from("profiles")
-    .select("id,email")
-    .eq("id", application.user_id)
-    .maybeSingle();
-
-  if (profileFetchError) {
-    console.error("Reject driver profile fetch failed:", profileFetchError);
-    throw new Error(profileFetchError.message);
-  }
+  const { application, profile } = await fetchApplicationAndProfile(
+    supabase,
+    appId
+  );
 
   const { error: applicationUpdateError } = await supabase
     .from("driver_applications")
@@ -157,10 +136,10 @@ export async function rejectDriver(formData: FormData) {
       status: "rejected",
       admin_note: "Driver application rejected by admin.",
     })
-    .eq("id", appId);
+    .eq("id", application.id);
 
   if (applicationUpdateError) {
-    console.error("Reject driver application update failed:", applicationUpdateError);
+    console.error("Driver application rejection failed:", applicationUpdateError);
     throw new Error(applicationUpdateError.message);
   }
 
@@ -173,11 +152,10 @@ export async function rejectDriver(formData: FormData) {
     .eq("id", application.user_id);
 
   if (profileUpdateError) {
-    console.error("Reject driver profile update failed:", profileUpdateError);
-    throw new Error(profileUpdateError.message);
+    console.error("Driver profile rejection failed:", profileUpdateError);
   }
 
-  const { error: notificationError } = await supabase.from("notifications").insert({
+  await supabase.from("notifications").insert({
     user_id: application.user_id,
     title: "Driver Application Rejected",
     message:
@@ -187,23 +165,12 @@ export async function rejectDriver(formData: FormData) {
     is_read: false,
   });
 
-  if (notificationError) {
-    console.error("Reject driver notification failed:", notificationError);
-  }
-
   if (profile?.email) {
-    const emailResult = await sendDriverStatusEmail(
+    await sendDriverStatusEmail(
       profile.email,
       application.full_name || "Driver",
       "rejected"
     );
-
-    console.log("Reject driver email result:", emailResult);
-  } else {
-    console.error("Reject driver email skipped: profile email is missing", {
-      appId,
-      userId: application.user_id,
-    });
   }
 
   revalidatePath("/admin/driver-applications");
