@@ -54,6 +54,10 @@ async function fetchApplicationAndProfile(
     throw new Error(profileError.message);
   }
 
+  if (!profile?.email) {
+    throw new Error("Driver profile email was not found.");
+  }
+
   return { application, profile };
 }
 
@@ -92,25 +96,32 @@ export async function approveDriver(formData: FormData) {
 
   if (profileUpdateError) {
     console.error("Driver profile approval failed:", profileUpdateError);
+    throw new Error(profileUpdateError.message);
   }
 
-  await supabase.from("notifications").insert({
-    user_id: application.user_id,
-    title: "Driver Application Approved",
-    message:
-      "Congratulations. Your driver application has been approved. You can now offer rides.",
-    type: "driver_application",
-    link: "/offer-a-ride/create",
-    is_read: false,
-  });
+  const { error: notificationError } = await supabase
+    .from("notifications")
+    .insert({
+      user_id: application.user_id,
+      title: "Driver Application Approved",
+      message:
+        "Congratulations. Your driver application has been approved. You can now offer rides.",
+      type: "driver_application",
+      link: "/offer-a-ride/create",
+      is_read: false,
+    });
 
-  if (profile?.email) {
-    await sendDriverStatusEmail(
-      profile.email,
-      application.full_name || "Driver",
-      "approved"
-    );
+  if (notificationError) {
+    console.error("Driver approval notification failed:", notificationError);
   }
+
+  const emailResult = await sendDriverStatusEmail(
+    profile.email,
+    application.full_name || "Driver",
+    "approved"
+  );
+
+  console.log("Driver approval email result:", emailResult);
 
   revalidatePath("/admin/driver-applications");
   revalidatePath("/admin");
@@ -153,25 +164,32 @@ export async function rejectDriver(formData: FormData) {
 
   if (profileUpdateError) {
     console.error("Driver profile rejection failed:", profileUpdateError);
+    throw new Error(profileUpdateError.message);
   }
 
-  await supabase.from("notifications").insert({
-    user_id: application.user_id,
-    title: "Driver Application Rejected",
-    message:
-      "Your application was not approved at this time. Please review and reapply.",
-    type: "driver_application",
-    link: "/apply/driver",
-    is_read: false,
-  });
+  const { error: notificationError } = await supabase
+    .from("notifications")
+    .insert({
+      user_id: application.user_id,
+      title: "Driver Application Rejected",
+      message:
+        "Your application was not approved at this time. Please review and reapply.",
+      type: "driver_application",
+      link: "/apply/driver",
+      is_read: false,
+    });
 
-  if (profile?.email) {
-    await sendDriverStatusEmail(
-      profile.email,
-      application.full_name || "Driver",
-      "rejected"
-    );
+  if (notificationError) {
+    console.error("Driver rejection notification failed:", notificationError);
   }
+
+  const emailResult = await sendDriverStatusEmail(
+    profile.email,
+    application.full_name || "Driver",
+    "rejected"
+  );
+
+  console.log("Driver rejection email result:", emailResult);
 
   revalidatePath("/admin/driver-applications");
   revalidatePath("/admin");

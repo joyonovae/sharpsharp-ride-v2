@@ -220,11 +220,6 @@ export default async function AdminDriverApplicationsPage() {
                       <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                         <form action={approveDriver}>
                           <input type="hidden" name="appId" value={app.id} />
-                          <input
-                            type="hidden"
-                            name="userId"
-                            value={app.user_id}
-                          />
 
                           <button className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-6 py-3 font-bold text-[#04130c] transition hover:bg-emerald-400 sm:w-auto">
                             <CheckCircle2 className="h-5 w-5" />
@@ -234,11 +229,6 @@ export default async function AdminDriverApplicationsPage() {
 
                         <form action={rejectDriver}>
                           <input type="hidden" name="appId" value={app.id} />
-                          <input
-                            type="hidden"
-                            name="userId"
-                            value={app.user_id}
-                          />
 
                           <button className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-red-400/30 bg-red-500/10 px-6 py-3 font-bold text-red-300 transition hover:bg-red-500/20 sm:w-auto">
                             <XCircle className="h-5 w-5" />
