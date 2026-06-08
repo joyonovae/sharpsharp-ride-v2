@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { signupWithGoogle, signupWithMagicLink } from "./actions";
-import { getSafeNextPath } from "@/lib/auth/redirects";
+import {
+  getAuthErrorMessage,
+  getAuthMessage,
+  getSafeNextPath,
+} from "@/lib/auth/redirects";
 
 export default async function SignupPage({
   searchParams,
@@ -13,6 +17,8 @@ export default async function SignupPage({
 }) {
   const params = await searchParams;
   const next = getSafeNextPath(params?.next);
+  const errorMessage = getAuthErrorMessage(params?.error);
+  const statusMessage = getAuthMessage(params?.message);
 
   return (
     <section className="min-h-screen bg-[linear-gradient(135deg,#031326_0%,#051a33_42%,#062445_100%)] px-5 py-16 text-white lg:px-8">
@@ -23,15 +29,15 @@ export default async function SignupPage({
           Create your SharpSharp Ride account.
         </p>
 
-        {params?.message && (
+        {statusMessage && (
           <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
-            {params.message}
+            {statusMessage}
           </div>
         )}
 
-        {params?.error && (
+        {errorMessage && (
           <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-            {params.error}
+            {errorMessage}
           </div>
         )}
 
