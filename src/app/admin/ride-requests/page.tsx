@@ -8,8 +8,13 @@ import {
   Users,
   CheckCircle2,
   XCircle,
+  Trash2,
 } from "lucide-react";
-import { markRideRequestMatched, cancelRideRequest } from "./actions";
+import {
+  markRideRequestMatched,
+  cancelRideRequest,
+  deleteCancelledRideRequest,
+} from "./actions";
 
 function getStatusStyle(status?: string | null) {
   if (status === "matched") return "border-blue-400/30 bg-blue-500/10 text-blue-300";
@@ -355,6 +360,16 @@ export default async function AdminRideRequestsPage() {
                           <button className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/30 bg-red-500/10 px-5 py-4 font-bold text-red-300 transition hover:bg-red-500/20">
                             <XCircle className="h-5 w-5" />
                             Cancel Request
+                          </button>
+                        </form>
+                      )}
+
+                      {request.status === "cancelled" && (
+                        <form action={deleteCancelledRideRequest}>
+                          <input type="hidden" name="requestId" value={request.id} />
+                          <button className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/30 px-5 py-4 font-bold text-red-300 transition hover:bg-red-500/10">
+                            <Trash2 className="h-5 w-5" />
+                            Remove Cancelled
                           </button>
                         </form>
                       )}

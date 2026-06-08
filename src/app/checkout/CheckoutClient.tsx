@@ -22,6 +22,7 @@ export default function CheckoutClient() {
 
   const type = searchParams.get("type");
   const rideId = searchParams.get("rideId");
+  const requestId = searchParams.get("requestId");
 
   const [ride, setRide] = useState<Ride | null>(null);
   const [userId, setUserId] = useState("");
@@ -32,6 +33,8 @@ export default function CheckoutClient() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [seats, setSeats] = useState(1);
+  const [assignedBooking, setAssignedBooking] = useState(false);
+  const [alreadyBooked, setAlreadyBooked] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -59,6 +62,36 @@ export default function CheckoutClient() {
       setUserId(user.id);
       setEmail(user.email || "");
 
+      if (requestId) {
+        const { data: rideRequest, error: requestError } = await supabase
+          .from("ride_requests")
+          .select("assigned_ride_id, passenger_count, status")
+          .eq("id", requestId)
+          .eq("user_id", user.id)
+          .single();
+
+        if (
+          requestError ||
+          !rideRequest ||
+          rideRequest.assigned_ride_id !== rideId
+        ) {
+          setErrorMessage("This assigned ride checkout link is invalid.");
+          setLoadingRide(false);
+          return;
+        }
+
+        if (rideRequest.status === "completed") {
+          setAlreadyBooked(true);
+        } else if (rideRequest.status !== "assigned") {
+          setErrorMessage("This ride request is not ready for payment.");
+          setLoadingRide(false);
+          return;
+        }
+
+        setSeats(Number(rideRequest.passenger_count || 1));
+        setAssignedBooking(true);
+      }
+
       const { data, error } = await supabase
         .from("rides")
         .select(
@@ -78,7 +111,7 @@ export default function CheckoutClient() {
     }
 
     loadCheckout();
-  }, [type, rideId, supabase, router]);
+  }, [type, rideId, requestId, supabase, router]);
 
   const totalAmount = ride ? seats * Number(ride.price_per_seat) : 0;
 
@@ -124,6 +157,7 @@ export default function CheckoutClient() {
           fullName: fullName.trim(),
           phone: phone.trim(),
           seats,
+          requestId,
         }),
       });
 
@@ -152,6 +186,25 @@ export default function CheckoutClient() {
     return (
       <div className="p-10 text-red-400">
         Ride not found or checkout link is invalid.
+      </div>
+    );
+  }
+
+  if (alreadyBooked) {
+    return (
+      <div className="mx-auto max-w-3xl px-5 py-10 text-white">
+        <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-6">
+          <h1 className="text-2xl font-bold">Assigned ride already booked</h1>
+          <p className="mt-3 text-white/70">
+            Your payment is complete and this assigned seat is confirmed.
+          </p>
+          <button
+            onClick={() => router.push("/dashboard/bookings")}
+            className="mt-5 rounded-xl bg-green-500 px-5 py-3 font-bold text-black"
+          >
+            View My Bookings
+          </button>
+        </div>
       </div>
     );
   }
@@ -196,12 +249,15 @@ export default function CheckoutClient() {
             max={ride.available_seats}
             value={seats}
             onChange={(e) => setSeats(Number(e.target.value))}
+            disabled={assignedBooking}
             className="w-full rounded-xl bg-black/30 p-3"
             required
           />
 
           <p className="text-sm text-white/60">
-            Available seats: {ride.available_seats}
+            {assignedBooking
+              ? `Seats assigned to your request: ${seats}`
+              : `Available seats: ${ride.available_seats}`}
           </p>
 
           {errorMessage && <p className="text-red-400">{errorMessage}</p>}

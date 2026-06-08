@@ -8,6 +8,9 @@ function getTypeLabel(type?: string | null) {
   if (type === "ride_request_matched") return "Ride Matched";
   if (type === "ride_request_cancelled") return "Ride Cancelled";
   if (type === "driver_application") return "Driver Application";
+  if (type === "booking_confirmed") return "Booking Confirmed";
+  if (type === "passenger_booking") return "Passenger Booking";
+  if (type?.startsWith("admin_")) return "Admin Operations";
   return "Notification";
 }
 
@@ -26,11 +29,15 @@ export default async function NotificationsPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  await supabase
+  const { error: markReadError } = await supabase
     .from("notifications")
     .update({ is_read: true })
     .eq("user_id", user.id)
     .eq("is_read", false);
+
+  if (markReadError) {
+    console.error("Could not mark notifications as read:", markReadError.message);
+  }
 
   return (
     <main className="min-h-screen bg-[#061116] px-4 py-10 text-white sm:px-6 lg:px-10">

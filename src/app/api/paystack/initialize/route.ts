@@ -45,13 +45,50 @@ export async function POST(request: Request) {
     const rideId = String(body.rideId || "").trim();
     const fullName = String(body.fullName || "").trim();
     const phone = String(body.phone || "").trim();
-    const seats = Number(body.seats || 1);
+    const requestId = String(body.requestId || "").trim() || null;
+    let seats = Number(body.seats || 1);
 
     if (!rideId || !fullName || !phone || !Number.isInteger(seats) || seats < 1) {
       return NextResponse.json(
         { status: false, message: "Missing payment or booking details." },
         { status: 400 }
       );
+    }
+
+    if (requestId) {
+      const { data: rideRequest, error: requestError } = await supabase
+        .from("ride_requests")
+        .select("id, assigned_ride_id, passenger_count, status")
+        .eq("id", requestId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (
+        requestError ||
+        !rideRequest ||
+        rideRequest.assigned_ride_id !== rideId ||
+        rideRequest.status !== "assigned"
+      ) {
+        return NextResponse.json(
+          { status: false, message: "This assigned ride request is not ready for payment." },
+          { status: 400 }
+        );
+      }
+
+      const { data: existingBooking } = await supabase
+        .from("ride_bookings")
+        .select("id")
+        .eq("ride_request_id", requestId)
+        .maybeSingle();
+
+      if (existingBooking) {
+        return NextResponse.json(
+          { status: false, message: "This assigned ride has already been booked." },
+          { status: 409 }
+        );
+      }
+
+      seats = Number(rideRequest.passenger_count || 1);
     }
 
     const { data: ride, error: rideError } = await supabase
@@ -105,6 +142,7 @@ export async function POST(request: Request) {
           fullName,
           phone,
           seats,
+          requestId,
         },
       }),
     });

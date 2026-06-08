@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { rideRequestSubmittedTemplate } from "@/lib/email/templates";
+import { notifyAdmins } from "@/lib/notifications/notifyAdmins";
 
 export async function POST() {
   const supabase = await createClient();
@@ -20,7 +21,7 @@ export async function POST() {
 
   const { data: rideRequest, error: requestError } = await supabase
     .from("ride_requests")
-    .select("full_name, from_city, to_city, travel_date")
+    .select("id, full_name, from_city, to_city, travel_date")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -44,6 +45,14 @@ export async function POST() {
     to: user.email,
     subject: template.subject,
     html: template.html,
+  });
+
+  await notifyAdmins({
+    title: "New ride request submitted",
+    message: `${rideRequest.full_name || "A passenger"} requested a ride from ${rideRequest.from_city} to ${rideRequest.to_city} for ${rideRequest.travel_date}.`,
+    type: "admin_ride_request",
+    link: `/admin/ride-requests/${rideRequest.id}`,
+    dedupeKey: `admin_ride_request_submitted:${rideRequest.id}`,
   });
 
   return NextResponse.json(result, { status: result.success ? 200 : 502 });

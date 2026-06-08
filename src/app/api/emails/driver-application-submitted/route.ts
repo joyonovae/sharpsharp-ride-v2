@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { driverApplicationSubmittedTemplate } from "@/lib/email/templates";
+import { notifyAdmins } from "@/lib/notifications/notifyAdmins";
 
 export async function POST(request: Request) {
   try {
@@ -73,6 +74,14 @@ export async function POST(request: Request) {
       to: user.email,
       subject: template.subject,
       html: template.html,
+    });
+
+    await notifyAdmins({
+      title: "New driver application submitted",
+      message: `${application.full_name || "A user"} submitted a driver application for review.`,
+      type: "admin_driver_application",
+      link: "/admin/driver-applications",
+      dedupeKey: `admin_driver_application_submitted:${application.id}`,
     });
 
     if (!result.success) {

@@ -1,7 +1,11 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { approveDriver, rejectDriver } from "./actions";
+import {
+  approveDriver,
+  deleteRejectedDriverApplication,
+  rejectDriver,
+} from "./actions";
 import {
   Car,
   CheckCircle2,
@@ -11,6 +15,7 @@ import {
   Phone,
   User,
   XCircle,
+  Trash2,
 } from "lucide-react";
 
 function getStatusStyle(status?: string | null) {
@@ -246,9 +251,18 @@ export default async function AdminDriverApplicationsPage() {
                     )}
 
                     {app.status === "rejected" && (
-                      <div className="mt-7 inline-flex items-center gap-2 rounded-full border border-red-400/30 bg-red-500/10 px-5 py-3 font-bold text-red-300">
-                        <XCircle className="h-5 w-5" />
-                        Application rejected
+                      <div className="mt-7 flex flex-wrap items-center gap-3">
+                        <div className="inline-flex items-center gap-2 rounded-full border border-red-400/30 bg-red-500/10 px-5 py-3 font-bold text-red-300">
+                          <XCircle className="h-5 w-5" />
+                          Application rejected
+                        </div>
+                        <form action={deleteRejectedDriverApplication}>
+                          <input type="hidden" name="appId" value={app.id} />
+                          <button className="inline-flex items-center gap-2 rounded-full border border-red-400/30 px-5 py-3 text-sm font-bold text-red-300 transition hover:bg-red-500/10">
+                            <Trash2 className="h-4 w-4" />
+                            Remove Rejected
+                          </button>
+                        </form>
                       </div>
                     )}
 

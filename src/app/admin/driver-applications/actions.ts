@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAuthUserEmail } from "@/lib/email/getAuthUserEmail";
 import { sendDriverStatusEmail } from "@/lib/email/sendDriverStatusEmail";
+import { createNotification } from "@/lib/notifications/createNotification";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -70,6 +71,11 @@ export async function approveDriver(formData: FormData) {
     return;
   }
 
+  if (application.status !== "pending") {
+    console.error("Driver approval skipped: application is not pending.");
+    return;
+  }
+
   const { error: applicationUpdateError } = await supabase
     .from("driver_applications")
     .update({
@@ -96,21 +102,15 @@ export async function approveDriver(formData: FormData) {
     console.error("Driver profile approval failed:", profileUpdateError);
   }
 
-  const { error: notificationError } = await supabase
-    .from("notifications")
-    .insert({
-      user_id: application.user_id,
+  await createNotification({
+      userId: application.user_id,
       title: "Driver Application Approved",
       message:
         "Congratulations. Your driver application has been approved. You can now offer rides.",
       type: "driver_application",
       link: "/offer-a-ride/create",
-      is_read: false,
+      dedupeKey: `driver_application_approved:${application.id}`,
     });
-
-  if (notificationError) {
-    console.error("Driver approval notification failed:", notificationError);
-  }
 
   if (email) {
     const emailResult = await sendDriverStatusEmail(
@@ -152,6 +152,11 @@ export async function rejectDriver(formData: FormData) {
     return;
   }
 
+  if (application.status !== "pending") {
+    console.error("Driver rejection skipped: application is not pending.");
+    return;
+  }
+
   const { error: applicationUpdateError } = await supabase
     .from("driver_applications")
     .update({
@@ -178,21 +183,15 @@ export async function rejectDriver(formData: FormData) {
     console.error("Driver profile rejection failed:", profileUpdateError);
   }
 
-  const { error: notificationError } = await supabase
-    .from("notifications")
-    .insert({
-      user_id: application.user_id,
+  await createNotification({
+      userId: application.user_id,
       title: "Driver Application Rejected",
       message:
         "Your application was not approved at this time. Please review and reapply.",
       type: "driver_application",
       link: "/apply/driver",
-      is_read: false,
+      dedupeKey: `driver_application_rejected:${application.id}`,
     });
-
-  if (notificationError) {
-    console.error("Driver rejection notification failed:", notificationError);
-  }
 
   if (email) {
     const emailResult = await sendDriverStatusEmail(
@@ -212,4 +211,35 @@ export async function rejectDriver(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/notifications");
   revalidatePath("/dashboard");
+}
+
+export async function deleteRejectedDriverApplication(formData: FormData) {
+  const supabase = await requireAdmin();
+  const appId = String(formData.get("appId") || "");
+
+  if (!appId) throw new Error("Missing application ID");
+
+  const { data: application, error: fetchError } = await supabase
+    .from("driver_applications")
+    .select("id, status")
+    .eq("id", appId)
+    .single();
+
+  if (fetchError || !application) {
+    throw new Error(fetchError?.message || "Driver application not found");
+  }
+
+  if (application.status !== "rejected") {
+    throw new Error("Only rejected driver applications can be removed");
+  }
+
+  const { error } = await supabase
+    .from("driver_applications")
+    .delete()
+    .eq("id", appId);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/driver-applications");
+  revalidatePath("/admin");
 }

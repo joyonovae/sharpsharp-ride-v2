@@ -6,6 +6,7 @@ type CreateNotificationParams = {
   message: string;
   type?: string;
   link?: string | null;
+  dedupeKey?: string | null;
 };
 
 export async function createNotification({
@@ -14,11 +15,12 @@ export async function createNotification({
   message,
   type = "info",
   link = null,
+  dedupeKey = null,
 }: CreateNotificationParams) {
   const supabase = createAdminClient();
 
   if (!userId || !title || !message) {
-    return;
+    return { success: false, created: false, error: "Missing notification details" };
   }
 
   const { error } = await supabase.from("notifications").insert({
@@ -27,13 +29,18 @@ export async function createNotification({
     message,
     type,
     link,
+    dedupe_key: dedupeKey,
     is_read: false,
   });
 
   if (error) {
+    if (error.code === "23505" && dedupeKey) {
+      return { success: true, created: false, duplicate: true };
+    }
+
     console.error("Notification creation failed:", error.message);
-    return { success: false, error: error.message };
+    return { success: false, created: false, error: error.message };
   }
 
-  return { success: true };
+  return { success: true, created: true };
 }

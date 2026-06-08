@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { createNotification } from "@/lib/notifications/createNotification";
+import { bookingConfirmedTemplate } from "@/lib/email/templates";
+import { getAuthUserEmail } from "@/lib/email/getAuthUserEmail";
+import { sendEmail } from "@/lib/email/sendEmail";
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Server error.";
@@ -66,6 +70,7 @@ export async function POST(request: Request) {
     const fullName = String(metadata.fullName || "").trim();
     const phone = String(metadata.phone || "").trim();
     const seats = Number(metadata.seats || 1);
+    const requestId = String(metadata.requestId || "").trim() || null;
 
     if (
       !rideId ||
@@ -134,6 +139,7 @@ export async function POST(request: Request) {
         p_seats: seats,
         p_total_amount: expectedAmountKobo / 100,
         p_payment_reference: reference,
+        p_ride_request_id: requestId,
       }
     );
 
@@ -142,6 +148,64 @@ export async function POST(request: Request) {
         { error: bookingError?.message || "Could not complete booking." },
         { status: 400 }
       );
+    }
+
+    if (booking.changed) {
+      const { data: bookedRide } = await admin
+        .from("rides")
+        .select("driver_id, driver_name, from_city, to_city")
+        .eq("id", rideId)
+        .single();
+
+      const passengerName = fullName || "Passenger";
+      await createNotification({
+        userId,
+        title: "Booking confirmed",
+        message: `Your payment was verified and your ${bookedRide?.from_city || "ride"} to ${bookedRide?.to_city || "destination"} booking is confirmed.`,
+        type: "booking_confirmed",
+        link: "/dashboard/bookings",
+        dedupeKey: `booking_confirmed:${reference}`,
+      });
+
+      if (user.email) {
+        const template = bookingConfirmedTemplate({
+          name: passengerName,
+          audience: "passenger",
+          fromCity: bookedRide?.from_city || "your pickup",
+          toCity: bookedRide?.to_city || "your destination",
+          seats,
+        });
+        const emailResult = await sendEmail({ to: user.email, ...template });
+        if (!emailResult.success) {
+          console.error("Passenger booking confirmation email failed:", emailResult.error);
+        }
+      }
+
+      if (bookedRide?.driver_id && bookedRide.driver_id !== userId) {
+        await createNotification({
+          userId: bookedRide.driver_id,
+          title: "New paid passenger booking",
+          message: `${passengerName} booked ${seats} seat${seats === 1 ? "" : "s"} on your ${bookedRide.from_city} to ${bookedRide.to_city} ride.`,
+          type: "passenger_booking",
+          link: "/dashboard/driver",
+          dedupeKey: `driver_booking:${reference}`,
+        });
+
+        const driverEmail = await getAuthUserEmail(bookedRide.driver_id);
+        if (driverEmail) {
+          const template = bookingConfirmedTemplate({
+            name: bookedRide.driver_name || "Driver",
+            audience: "driver",
+            fromCity: bookedRide.from_city,
+            toCity: bookedRide.to_city,
+            seats,
+          });
+          const emailResult = await sendEmail({ to: driverEmail, ...template });
+          if (!emailResult.success) {
+            console.error("Driver passenger-booking email failed:", emailResult.error);
+          }
+        }
+      }
     }
 
     return NextResponse.json({

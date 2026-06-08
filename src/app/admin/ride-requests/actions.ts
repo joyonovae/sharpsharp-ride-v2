@@ -6,7 +6,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createNotification } from "@/lib/notifications/createNotification";
 import { getAuthUserEmail } from "@/lib/email/getAuthUserEmail";
 import { sendEmail } from "@/lib/email/sendEmail";
-import { rideAssignedTemplate } from "@/lib/email/templates";
+import {
+  rideAssignedTemplate,
+  rideRequestStatusTemplate,
+} from "@/lib/email/templates";
 
 type AssignmentResult = {
   changed: boolean;
@@ -64,6 +67,10 @@ export async function markRideRequestMatched(formData: FormData) {
     throw new Error(requestError?.message || "Ride request not found");
   }
 
+  if (request.status !== "pending") {
+    throw new Error("Only pending requests can be marked as matched");
+  }
+
   const { error: updateError } = await supabase
     .from("ride_requests")
     .update({
@@ -84,7 +91,10 @@ export async function markRideRequestMatched(formData: FormData) {
       message: `Your ${request.from_city} → ${request.to_city} ride request for ${request.travel_date} has been matched.`,
       type: "ride_request_matched",
       link: "/dashboard",
+      dedupeKey: `ride_request_matched:${request.id}`,
     });
+
+    await sendRequestStatusEmail(request, "matched");
   }
 
   revalidatePath("/admin/ride-requests");
@@ -110,6 +120,14 @@ export async function cancelRideRequest(formData: FormData) {
     throw new Error(requestError?.message || "Ride request not found");
   }
 
+  if (request.status === "cancelled") {
+    return;
+  }
+
+  if (request.status === "completed") {
+    throw new Error("A completed request cannot be cancelled");
+  }
+
   const { error: updateError } = await supabase
     .from("ride_requests")
     .update({
@@ -130,7 +148,10 @@ export async function cancelRideRequest(formData: FormData) {
       message: `Your ${request.from_city} → ${request.to_city} ride request has been cancelled.`,
       type: "ride_request_cancelled",
       link: "/dashboard",
+      dedupeKey: `ride_request_cancelled:${request.id}`,
     });
+
+    await sendRequestStatusEmail(request, "cancelled");
   }
 
   revalidatePath("/admin/ride-requests");
@@ -164,7 +185,8 @@ export async function assignRideToRequest(formData: FormData) {
       title: "Ride assigned",
       message: `Your ride request from ${assignment.from_city} to ${assignment.to_city} has been assigned to a driver.`,
       type: "ride_assigned",
-      link: "/dashboard",
+      link: `/checkout?type=ride&rideId=${assignment.ride_id}&requestId=${assignment.request_id}`,
+      dedupeKey: `ride_assigned_passenger:${assignment.request_id}:${assignment.ride_id}`,
     });
   }
 
@@ -179,6 +201,7 @@ export async function assignRideToRequest(formData: FormData) {
       message: `A passenger request from ${assignment.from_city} to ${assignment.to_city} has been assigned to you.`,
       type: "ride_assigned",
       link: "/dashboard/driver",
+      dedupeKey: `ride_assigned_driver:${assignment.request_id}:${assignment.ride_id}`,
     });
   }
 
@@ -220,6 +243,10 @@ async function sendAssignmentEmail(
     fromCity: assignment.from_city,
     toCity: assignment.to_city,
     travelDate: assignment.travel_date,
+    link:
+      audience === "passenger"
+        ? `/checkout?type=ride&rideId=${assignment.ride_id}&requestId=${assignment.request_id}`
+        : "/dashboard/driver",
   });
 
   const result = await sendEmail({
@@ -231,4 +258,73 @@ async function sendAssignmentEmail(
   if (!result.success) {
     console.error(`${audience} assignment email failed:`, result.error);
   }
+}
+
+async function sendRequestStatusEmail(
+  request: {
+    user_id: string | null;
+    full_name: string | null;
+    from_city: string;
+    to_city: string;
+    travel_date: string;
+  },
+  status: "matched" | "cancelled"
+) {
+  if (!request.user_id) return;
+
+  const email = await getAuthUserEmail(request.user_id);
+  if (!email) {
+    console.error(`Ride request ${status} email skipped: auth email is missing.`);
+    return;
+  }
+
+  const template = rideRequestStatusTemplate({
+    name: request.full_name || "Passenger",
+    status,
+    fromCity: request.from_city,
+    toCity: request.to_city,
+    travelDate: request.travel_date,
+  });
+  const result = await sendEmail({ to: email, ...template });
+
+  if (!result.success) {
+    console.error(`Ride request ${status} email failed:`, result.error);
+  }
+}
+
+export async function deleteCancelledRideRequest(formData: FormData) {
+  const admin = await requireAdmin();
+  const requestId = String(formData.get("requestId") || "");
+
+  if (!requestId) throw new Error("Missing request ID");
+
+  const { data: request, error: requestError } = await admin
+    .from("ride_requests")
+    .select("id, status")
+    .eq("id", requestId)
+    .single();
+
+  if (requestError || !request) {
+    throw new Error(requestError?.message || "Ride request not found");
+  }
+
+  if (request.status !== "cancelled") {
+    throw new Error("Only cancelled ride requests can be removed");
+  }
+
+  const { data: booking } = await admin
+    .from("ride_bookings")
+    .select("id")
+    .eq("ride_request_id", requestId)
+    .maybeSingle();
+
+  if (booking) {
+    throw new Error("This request has a booking record and cannot be removed");
+  }
+
+  const { error } = await admin.from("ride_requests").delete().eq("id", requestId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/ride-requests");
+  revalidatePath("/admin");
 }

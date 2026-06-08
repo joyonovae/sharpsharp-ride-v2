@@ -184,12 +184,14 @@ export function rideAssignedTemplate({
   fromCity,
   toCity,
   travelDate,
+  link,
 }: {
   name: string;
   audience: "passenger" | "driver";
   fromCity: string;
   toCity: string;
   travelDate: string;
+  link: string;
 }) {
   const message =
     audience === "driver"
@@ -218,7 +220,7 @@ export function rideAssignedTemplate({
 
         <div style="margin-top:30px;text-align:center;">
           <a
-            href="https://www.sharpsharpride.com/dashboard"
+            href="https://www.sharpsharpride.com${link}"
             style="
               display:inline-block;
               background:#18c37e;
@@ -229,8 +231,97 @@ export function rideAssignedTemplate({
               font-weight:700;
             "
           >
-            View Dashboard
+            ${audience === "passenger" ? "Book Assigned Ride" : "View Driver Dashboard"}
           </a>
+        </div>
+      `
+    ),
+  };
+}
+
+export function rideRequestStatusTemplate({
+  name,
+  status,
+  fromCity,
+  toCity,
+  travelDate,
+}: {
+  name: string;
+  status: "matched" | "cancelled";
+  fromCity: string;
+  toCity: string;
+  travelDate: string;
+}) {
+  const matched = status === "matched";
+
+  return {
+    subject: matched ? "Your Ride Request Was Matched" : "Ride Request Cancelled",
+    html: emailLayout(
+      matched ? "Ride Request Matched" : "Ride Request Cancelled",
+      `
+        <p style="font-size:16px;line-height:1.8;color:#334155;">Hello ${name},</p>
+        <p style="font-size:16px;line-height:1.8;color:#334155;">
+          Your ride request from <strong>${fromCity}</strong> to <strong>${toCity}</strong>
+          for <strong>${travelDate}</strong> has been ${matched ? "matched. We will notify you when a ride is assigned." : "cancelled."}
+        </p>
+      `
+    ),
+  };
+}
+
+export function bookingConfirmedTemplate({
+  name,
+  audience,
+  fromCity,
+  toCity,
+  seats,
+}: {
+  name: string;
+  audience: "passenger" | "driver";
+  fromCity: string;
+  toCity: string;
+  seats: number;
+}) {
+  const passenger = audience === "passenger";
+
+  return {
+    subject: passenger ? "Ride Booking Confirmed" : "New Paid Passenger Booking",
+    html: emailLayout(
+      passenger ? "Booking Confirmed" : "New Passenger Booking",
+      `
+        <p style="font-size:16px;line-height:1.8;color:#334155;">Hello ${name},</p>
+        <p style="font-size:16px;line-height:1.8;color:#334155;">
+          ${passenger ? "Your payment was verified and your booking is confirmed" : `A passenger paid for ${seats} seat${seats === 1 ? "" : "s"}`}
+          for the ride from <strong>${fromCity}</strong> to <strong>${toCity}</strong>.
+        </p>
+      `
+    ),
+  };
+}
+
+export function adminOperationalTemplate({
+  name,
+  title,
+  message,
+  details,
+  link,
+}: {
+  name: string;
+  title: string;
+  message: string;
+  details?: string;
+  link: string;
+}) {
+  return {
+    subject: title,
+    html: emailLayout(
+      title,
+      `
+        <p style="font-size:16px;line-height:1.8;color:#334155;">Hello ${name},</p>
+        <p style="font-size:16px;line-height:1.8;color:#334155;">${message}</p>
+        ${details ? `<p style="font-size:14px;line-height:1.8;color:#64748b;">${details}</p>` : ""}
+        <div style="margin-top:30px;text-align:center;">
+          <a href="https://www.sharpsharpride.com${link}" style="display:inline-block;background:#18c37e;color:#04130c;padding:14px 28px;border-radius:999px;text-decoration:none;font-weight:700;">Open Admin Panel</a>
         </div>
       `
     ),

@@ -153,7 +153,7 @@ export default async function DashboardPage() {
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
-    .limit(4);
+    .limit(10);
 
   const requests = (rideRequests || []).map((request: any) => ({
     ...request,
@@ -162,8 +162,22 @@ export default async function DashboardPage() {
       : request.assigned_ride || null,
   })) as RideRequest[];
 
+  const { data: paidBookings } = await supabase
+    .from("ride_bookings")
+    .select("ride_request_id, ride_id")
+    .eq("user_id", user.id)
+    .eq("payment_status", "paid");
+
+  const paidRequestIds = new Set(
+    (paidBookings || [])
+      .map((booking) => booking.ride_request_id)
+      .filter(Boolean)
+  );
+  const paidRideIds = new Set((paidBookings || []).map((booking) => booking.ride_id));
+
   const assignedRequests = requests.filter(
-    (request) => request.status === "assigned" && request.assigned_ride
+    (request) =>
+      ["assigned", "completed"].includes(request.status) && request.assigned_ride
   );
 
   return (
@@ -312,6 +326,9 @@ export default async function DashboardPage() {
             <div className="mt-6 grid gap-5">
               {assignedRequests.map((request) => {
                 const ride = request.assigned_ride;
+                const isPaid =
+                  paidRequestIds.has(request.id) ||
+                  Boolean(ride?.id && paidRideIds.has(ride.id));
 
                 return (
                   <div
@@ -335,7 +352,7 @@ export default async function DashboardPage() {
                       </div>
 
                       <span className="inline-flex w-fit rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-emerald-300">
-                        Assigned
+                        {isPaid ? "Booked and Paid" : "Assigned"}
                       </span>
                     </div>
 
@@ -368,6 +385,24 @@ export default async function DashboardPage() {
                             : "—"
                         }
                       />
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      {isPaid ? (
+                        <Link
+                          href="/dashboard/bookings"
+                          className="rounded-full border border-emerald-400/30 px-6 py-3 text-sm font-bold text-emerald-300"
+                        >
+                          View Booking
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/checkout?type=ride&rideId=${ride?.id}&requestId=${request.id}`}
+                          className="rounded-full bg-emerald-500 px-6 py-3 text-sm font-bold text-[#04130c] transition hover:bg-emerald-400"
+                        >
+                          Pay for Assigned Seat
+                        </Link>
+                      )}
                     </div>
                   </div>
                 );
