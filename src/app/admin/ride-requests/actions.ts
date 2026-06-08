@@ -2,7 +2,24 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createNotification } from "@/lib/notifications/createNotification";
+import { getAuthUserEmail } from "@/lib/email/getAuthUserEmail";
+import { sendEmail } from "@/lib/email/sendEmail";
+import { rideAssignedTemplate } from "@/lib/email/templates";
+
+type AssignmentResult = {
+  changed: boolean;
+  request_id: string;
+  ride_id: string;
+  passenger_id: string | null;
+  passenger_name: string | null;
+  driver_id: string | null;
+  driver_name: string | null;
+  from_city: string;
+  to_city: string;
+  travel_date: string;
+};
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -25,7 +42,7 @@ async function requireAdmin() {
     throw new Error("Not authorized");
   }
 
-  return supabase;
+  return createAdminClient();
 }
 
 export async function markRideRequestMatched(formData: FormData) {
@@ -37,13 +54,17 @@ export async function markRideRequestMatched(formData: FormData) {
     throw new Error("Missing request ID");
   }
 
-  const { data: request } = await supabase
+  const { data: request, error: requestError } = await supabase
     .from("ride_requests")
     .select("*")
     .eq("id", requestId)
     .single();
 
-  await supabase
+  if (requestError || !request) {
+    throw new Error(requestError?.message || "Ride request not found");
+  }
+
+  const { error: updateError } = await supabase
     .from("ride_requests")
     .update({
       status: "matched",
@@ -52,7 +73,11 @@ export async function markRideRequestMatched(formData: FormData) {
     })
     .eq("id", requestId);
 
-  if (request?.user_id) {
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  if (request.user_id) {
     await createNotification({
       userId: request.user_id,
       title: "Ride request matched",
@@ -75,13 +100,17 @@ export async function cancelRideRequest(formData: FormData) {
     throw new Error("Missing request ID");
   }
 
-  const { data: request } = await supabase
+  const { data: request, error: requestError } = await supabase
     .from("ride_requests")
     .select("*")
     .eq("id", requestId)
     .single();
 
-  await supabase
+  if (requestError || !request) {
+    throw new Error(requestError?.message || "Ride request not found");
+  }
+
+  const { error: updateError } = await supabase
     .from("ride_requests")
     .update({
       status: "cancelled",
@@ -90,7 +119,11 @@ export async function cancelRideRequest(formData: FormData) {
     })
     .eq("id", requestId);
 
-  if (request?.user_id) {
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  if (request.user_id) {
     await createNotification({
       userId: request.user_id,
       title: "Ride request cancelled",
@@ -105,90 +138,97 @@ export async function cancelRideRequest(formData: FormData) {
 }
 
 export async function assignRideToRequest(formData: FormData) {
-  const supabase = await requireAdmin();
+  const admin = await requireAdmin();
 
   const requestId = String(formData.get("requestId") || "");
   const rideId = String(formData.get("rideId") || "");
-  const driverId = String(formData.get("driverId") || "");
 
   if (!requestId || !rideId) {
     throw new Error("Missing assignment details");
   }
 
-  // GET REQUEST
-  const { data: request, error: requestError } = await supabase
-    .from("ride_requests")
-    .select("*")
-    .eq("id", requestId)
-    .single();
+  const { data, error } = await admin.rpc("assign_ride_request_to_ride", {
+    p_request_id: requestId,
+    p_ride_id: rideId,
+  });
 
-  if (requestError || !request) {
-    throw new Error("Ride request not found");
+  if (error || !data) {
+    throw new Error(error?.message || "Could not assign ride request");
   }
 
-  // GET RIDE
-  const { data: ride, error: rideError } = await supabase
-    .from("rides")
-    .select("*")
-    .eq("id", rideId)
-    .single();
+  const assignment = data as AssignmentResult;
 
-  if (rideError || !ride) {
-    throw new Error("Ride not found");
-  }
-
-  const passengersNeeded = Number(request.passenger_count || 1);
-  const availableSeats = Number(ride.available_seats || 0);
-
-  // PREVENT OVERBOOKING
-  if (availableSeats < passengersNeeded) {
-    throw new Error("Not enough available seats");
-  }
-
-  const updatedSeats = availableSeats - passengersNeeded;
-
-  // UPDATE REQUEST
-  const { error: requestUpdateError } = await supabase
-    .from("ride_requests")
-    .update({
-      status: "assigned",
-      assigned_ride_id: rideId,
-      assigned_driver_id: driverId || null,
-      assigned_at: new Date().toISOString(),
-      admin_note: "Ride assigned by admin.",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", requestId);
-
-  if (requestUpdateError) {
-    throw new Error(requestUpdateError.message);
-  }
-
-  // UPDATE RIDE SEATS
-  const { error: rideUpdateError } = await supabase
-    .from("rides")
-    .update({
-      available_seats: updatedSeats,
-    })
-    .eq("id", rideId);
-
-  if (rideUpdateError) {
-    throw new Error(rideUpdateError.message);
-  }
-  
-  // CREATE NOTIFICATION
-  if (request.user_id) {
+  if (assignment.changed && assignment.passenger_id) {
     await createNotification({
-      userId: request.user_id,
+      userId: assignment.passenger_id,
       title: "Ride assigned",
-      message: `Your ride request from ${request.from_city} to ${request.to_city} has been assigned to a driver.`,
+      message: `Your ride request from ${assignment.from_city} to ${assignment.to_city} has been assigned to a driver.`,
       type: "ride_assigned",
       link: "/dashboard",
     });
+  }
+
+  if (
+    assignment.changed &&
+    assignment.driver_id &&
+    assignment.driver_id !== assignment.passenger_id
+  ) {
+    await createNotification({
+      userId: assignment.driver_id,
+      title: "New ride request assigned",
+      message: `A passenger request from ${assignment.from_city} to ${assignment.to_city} has been assigned to you.`,
+      type: "ride_assigned",
+      link: "/dashboard/driver",
+    });
+  }
+
+  if (assignment.changed) {
+    await Promise.all([
+      sendAssignmentEmail(assignment, "passenger"),
+      sendAssignmentEmail(assignment, "driver"),
+    ]);
   }
 
   revalidatePath("/admin/ride-requests");
   revalidatePath(`/admin/ride-requests/${requestId}`);
   revalidatePath("/rides");
   revalidatePath("/dashboard");
+  revalidatePath("/dashboard/driver");
+}
+
+async function sendAssignmentEmail(
+  assignment: AssignmentResult,
+  audience: "passenger" | "driver"
+) {
+  const userId =
+    audience === "passenger" ? assignment.passenger_id : assignment.driver_id;
+
+  if (!userId) return;
+
+  const email = await getAuthUserEmail(userId);
+  if (!email) {
+    console.error(`Assignment email skipped: ${audience} email is missing.`);
+    return;
+  }
+
+  const template = rideAssignedTemplate({
+    name:
+      audience === "passenger"
+        ? assignment.passenger_name || "Passenger"
+        : assignment.driver_name || "Driver",
+    audience,
+    fromCity: assignment.from_city,
+    toCity: assignment.to_city,
+    travelDate: assignment.travel_date,
+  });
+
+  const result = await sendEmail({
+    to: email,
+    subject: template.subject,
+    html: template.html,
+  });
+
+  if (!result.success) {
+    console.error(`${audience} assignment email failed:`, result.error);
+  }
 }

@@ -275,12 +275,6 @@ export default async function AdminRideRequestDetailPage({
                           value={request.id}
                         />
                         <input type="hidden" name="rideId" value={ride.id} />
-                        <input
-                          type="hidden"
-                          name="driverId"
-                          value={ride.driver_id || ""}
-                        />
-
                         <button className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-emerald-500 px-6 py-3 font-bold text-[#04130c] transition hover:bg-emerald-400 md:w-auto">
                           <Car className="h-5 w-5" />
                           Assign

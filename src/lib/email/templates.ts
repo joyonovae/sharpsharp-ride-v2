@@ -177,3 +177,62 @@ export function rideRequestSubmittedTemplate({
     ),
   };
 }
+
+export function rideAssignedTemplate({
+  name,
+  audience,
+  fromCity,
+  toCity,
+  travelDate,
+}: {
+  name: string;
+  audience: "passenger" | "driver";
+  fromCity: string;
+  toCity: string;
+  travelDate: string;
+}) {
+  const message =
+    audience === "driver"
+      ? `A passenger ride request from <strong>${fromCity}</strong> to <strong>${toCity}</strong> has been assigned to you.`
+      : `Your ride request from <strong>${fromCity}</strong> to <strong>${toCity}</strong> has been assigned to a driver.`;
+
+  return {
+    subject:
+      audience === "driver"
+        ? "New Ride Request Assigned"
+        : "Your Ride Request Has Been Assigned",
+    html: emailLayout(
+      "Ride Assigned",
+      `
+        <p style="font-size:16px;line-height:1.8;color:#334155;">
+          Hello ${name},
+        </p>
+
+        <p style="font-size:16px;line-height:1.8;color:#334155;">
+          ${message}
+        </p>
+
+        <p style="font-size:16px;line-height:1.8;color:#334155;">
+          Travel Date: <strong>${travelDate}</strong>
+        </p>
+
+        <div style="margin-top:30px;text-align:center;">
+          <a
+            href="https://www.sharpsharpride.com/dashboard"
+            style="
+              display:inline-block;
+              background:#18c37e;
+              color:#04130c;
+              padding:14px 28px;
+              border-radius:999px;
+              text-decoration:none;
+              font-weight:700;
+            "
+          >
+            View Dashboard
+          </a>
+        </div>
+      `
+    ),
+  };
+}

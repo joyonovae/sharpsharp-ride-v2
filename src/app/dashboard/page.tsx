@@ -647,12 +647,20 @@ export default async function DashboardPage() {
                 Apply as Driver
               </Link>
             ) : application.status === "approved" ? (
-              <Link
-                href="/offer-a-ride/create"
-                className="inline-flex justify-center rounded-full bg-emerald-500 px-7 py-4 font-bold text-[#04130c] transition hover:bg-emerald-400"
-              >
-                Create Ride
-              </Link>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/dashboard/driver"
+                  className="inline-flex justify-center rounded-full border border-emerald-400/30 px-7 py-4 font-bold text-emerald-300 transition hover:bg-emerald-500/10"
+                >
+                  Driver Dashboard
+                </Link>
+                <Link
+                  href="/offer-a-ride/create"
+                  className="inline-flex justify-center rounded-full bg-emerald-500 px-7 py-4 font-bold text-[#04130c] transition hover:bg-emerald-400"
+                >
+                  Create Ride
+                </Link>
+              </div>
             ) : application.status === "rejected" ? (
               <Link
                 href="/apply/driver"
