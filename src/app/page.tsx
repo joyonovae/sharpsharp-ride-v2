@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 
@@ -46,6 +47,7 @@ const slides = ["/hero/ride1.jpg", "/hero/ride2.jpg", "/hero/ride3.jpg"];
 
 export default function HomePage() {
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [fromCity, setFromCity] = useState("");
   const [toCity, setToCity] = useState("");
@@ -53,6 +55,14 @@ export default function HomePage() {
   const [passengers, setPassengers] = useState("1");
 
   useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setIsLoggedIn(Boolean(data.user)));
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(Boolean(session?.user));
+    });
+
     const elements = document.querySelectorAll(".scroll-reveal");
 
     const observer = new IntersectionObserver(
@@ -74,8 +84,15 @@ export default function HomePage() {
 
     elements.forEach((el) => observer.observe(el));
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      subscription.unsubscribe();
+    };
   }, []);
+
+  function actionHref(path: string) {
+    return isLoggedIn ? path : `/signup?next=${encodeURIComponent(path)}`;
+  }
 
   function handleHeroSearch() {
     const params = new URLSearchParams();
@@ -86,7 +103,8 @@ export default function HomePage() {
     if (passengers) params.set("passengers", passengers);
 
     const queryString = params.toString();
-    router.push(queryString ? `/rides?${queryString}` : "/rides");
+    const path = queryString ? `/rides?${queryString}` : "/rides";
+    router.push(actionHref(path));
   }
 
   return (
@@ -163,21 +181,21 @@ export default function HomePage() {
 
             <div className="mt-8 flex flex-wrap justify-start gap-3">
               <Link
-                href="/rides"
+                href={actionHref("/rides")}
                 className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
               >
                 Shared Rides
               </Link>
 
               <Link
-                href="/rent"
+                href={actionHref("/rent")}
                 className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
               >
                 Rent a Car
               </Link>
 
               <Link
-                href="/offer-a-ride"
+                href={actionHref("/offer-a-ride")}
                 className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
               >
                 Offer a Ride
@@ -376,7 +394,7 @@ export default function HomePage() {
                 <h3 className="mt-5 text-2xl font-black">{service.title}</h3>
                 <p className="mt-3 text-slate-600">{service.desc}</p>
                 <Link
-                  href={service.href}
+                  href={actionHref(service.href)}
                   className="mt-5 inline-block font-bold text-emerald-600"
                 >
                   Learn more →
@@ -473,7 +491,7 @@ export default function HomePage() {
               return (
                 <Link
                   key={`${from}-${to}`}
-                  href={href}
+                  href={actionHref(href)}
                   className="scroll-reveal block rounded-2xl border p-5 transition hover:-translate-y-2 hover:border-emerald-400 hover:shadow-lg"
                 >
                   <h3 className="font-black">
@@ -583,7 +601,7 @@ export default function HomePage() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              href="/offer-a-ride"
+              href={actionHref("/apply/driver")}
               className="rounded-full bg-emerald-500 px-7 py-4 text-center font-bold text-[#04130c] transition hover:bg-emerald-400"
             >
               Become a Driver

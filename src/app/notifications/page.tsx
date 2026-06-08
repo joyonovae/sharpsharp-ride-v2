@@ -10,6 +10,7 @@ function getTypeLabel(type?: string | null) {
   if (type === "driver_application") return "Driver Application";
   if (type === "booking_confirmed") return "Booking Confirmed";
   if (type === "passenger_booking") return "Passenger Booking";
+  if (type === "trip_completed") return "Trip Completed";
   if (type?.startsWith("admin_")) return "Admin Operations";
   return "Notification";
 }

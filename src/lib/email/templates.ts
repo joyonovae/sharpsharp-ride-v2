@@ -327,3 +327,29 @@ export function adminOperationalTemplate({
     ),
   };
 }
+
+export function tripCompletedTemplate({
+  name,
+  audience,
+  fromCity,
+  toCity,
+}: {
+  name: string;
+  audience: "passenger" | "driver";
+  fromCity: string;
+  toCity: string;
+}) {
+  return {
+    subject: "Trip Completed",
+    html: emailLayout(
+      "Trip Completed",
+      `
+        <p style="font-size:16px;line-height:1.8;color:#334155;">Hello ${name},</p>
+        <p style="font-size:16px;line-height:1.8;color:#334155;">
+          ${audience === "passenger" ? "Your" : "Your passenger"} trip from
+          <strong>${fromCity}</strong> to <strong>${toCity}</strong> has been marked completed.
+        </p>
+      `
+    ),
+  };
+}

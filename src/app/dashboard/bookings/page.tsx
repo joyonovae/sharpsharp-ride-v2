@@ -22,6 +22,8 @@ export default async function MyBookingsPage() {
       total_amount,
       booking_reference,
       payment_status,
+      trip_status,
+      completed_at,
       created_at,
       rides (
         from_city,
@@ -83,7 +85,7 @@ export default async function MyBookingsPage() {
                     </div>
 
                     <span className="rounded-full bg-emerald-500/10 px-4 py-2 text-sm font-bold text-emerald-300">
-                      {booking.payment_status || "paid"}
+                      {booking.trip_status || booking.payment_status || "booked"}
                     </span>
                   </div>
 
@@ -91,6 +93,14 @@ export default async function MyBookingsPage() {
                     <Info label="Seats" value={booking.seats_booked} />
                     <Info label="Amount" value={`₦${booking.total_amount}`} />
                     <Info label="Reference" value={booking.booking_reference} />
+                    <Info
+                      label="Completed"
+                      value={
+                        booking.completed_at
+                          ? new Date(booking.completed_at).toLocaleDateString()
+                          : "Not yet"
+                      }
+                    />
                   </div>
                 </div>
               );

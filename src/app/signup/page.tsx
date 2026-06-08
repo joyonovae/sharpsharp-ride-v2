@@ -7,9 +7,11 @@ export default async function SignupPage({
   searchParams?: Promise<{
     error?: string;
     message?: string;
+    next?: string;
   }>;
 }) {
   const params = await searchParams;
+  const next = params?.next?.startsWith("/") ? params.next : "/dashboard";
 
   return (
     <section className="min-h-screen bg-[linear-gradient(135deg,#031326_0%,#051a33_42%,#062445_100%)] px-5 py-16 text-white lg:px-8">
@@ -34,6 +36,7 @@ export default async function SignupPage({
 
         <div className="mt-8 space-y-4">
           <form action={signupWithGoogle}>
+            <input type="hidden" name="next" value={next} />
             <button className="h-12 w-full rounded-full bg-white font-bold text-[#061116]">
               Continue with Google
             </button>
@@ -46,6 +49,7 @@ export default async function SignupPage({
           </div>
 
           <form action={signupWithMagicLink} className="space-y-4">
+            <input type="hidden" name="next" value={next} />
             <input
               name="email"
               type="email"
@@ -62,7 +66,7 @@ export default async function SignupPage({
 
         <p className="mt-8 text-center text-sm text-slate-300">
           Already have an account?{" "}
-          <Link href="/login" className="text-[#18c37e] underline">
+          <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-[#18c37e] underline">
             Login
           </Link>
         </p>

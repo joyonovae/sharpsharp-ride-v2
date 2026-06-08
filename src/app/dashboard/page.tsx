@@ -577,6 +577,13 @@ export default async function DashboardPage() {
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             <ActionCard
+              href="/rides"
+              icon={<Users className="h-6 w-6" />}
+              title="Book a Ride"
+              desc="Browse available shared rides and securely book a seat."
+            />
+
+            <ActionCard
               href="/request-ride"
               icon={<Route className="h-6 w-6" />}
               title="Request a Ride"
@@ -610,6 +617,39 @@ export default async function DashboardPage() {
              title="Notifications"
              desc="View ride updates, assignments, and account alerts."
              />
+
+            {application?.status === "approved" ? (
+              <>
+                <ActionCard
+                  href="/offer-a-ride/create"
+                  icon={<Route className="h-6 w-6" />}
+                  title="Offer a Ride"
+                  desc="Create a ride using your approved driver profile."
+                />
+                <ActionCard
+                  href="/dashboard/driver"
+                  icon={<User className="h-6 w-6" />}
+                  title="Driver Dashboard"
+                  desc="Manage your rides, passengers, and assigned requests."
+                />
+              </>
+            ) : (
+              <ActionCard
+                href="/apply/driver"
+                icon={<User className="h-6 w-6" />}
+                title="Apply as Driver"
+                desc="Submit your vehicle and driver details for approval."
+              />
+            )}
+
+            {profile?.role === "admin" && (
+              <ActionCard
+                href="/admin"
+                icon={<ShieldCheck className="h-6 w-6" />}
+                title="Admin Dashboard"
+                desc="Open the operational control center."
+              />
+            )}
           </div>
         </section>
 

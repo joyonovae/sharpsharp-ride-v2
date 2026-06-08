@@ -7,9 +7,11 @@ export default async function LoginPage({
   searchParams?: Promise<{
     error?: string;
     message?: string;
+    next?: string;
   }>;
 }) {
   const params = await searchParams;
+  const next = params?.next?.startsWith("/") ? params.next : "/dashboard";
 
   return (
     <section className="min-h-screen bg-[linear-gradient(135deg,#031326_0%,#051a33_42%,#062445_100%)] px-5 py-16 text-white lg:px-8">
@@ -35,6 +37,7 @@ export default async function LoginPage({
         <div className="mt-8 space-y-4">
           {/* GOOGLE LOGIN */}
           <form action={loginWithGoogle}>
+            <input type="hidden" name="next" value={next} />
             <button
               type="submit"
               className="h-12 w-full rounded-full bg-white font-bold text-[#061116]"
@@ -51,6 +54,7 @@ export default async function LoginPage({
 
           {/* MAGIC LINK */}
           <form action={loginWithMagicLink} className="space-y-4">
+            <input type="hidden" name="next" value={next} />
             <input
               name="email"
               type="email"
@@ -70,7 +74,7 @@ export default async function LoginPage({
 
         <p className="mt-8 text-center text-sm text-slate-300">
           Don&apos;t have an account?{" "}
-          <Link href="/signup" className="font-bold text-[#18c37e] underline">
+          <Link href={`/signup?next=${encodeURIComponent(next)}`} className="font-bold text-[#18c37e] underline">
             Create one
           </Link>
         </p>

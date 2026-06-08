@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Car, CheckCircle2, Route, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { completeTrip } from "@/app/actions/completeTrip";
 
 type DriverRide = {
   id: string;
@@ -22,6 +23,7 @@ type RideBooking = {
   seats_booked: number;
   payment_status: string;
   total_amount: number;
+  trip_status: string;
 };
 
 type AssignedRequest = {
@@ -70,7 +72,7 @@ export default async function DriverDashboardPage() {
       supabase
         .from("ride_bookings")
         .select(
-          "id, ride_id, full_name, phone, seats_booked, payment_status, total_amount, rides!inner(driver_id)"
+          "id, ride_id, full_name, phone, seats_booked, payment_status, total_amount, trip_status, rides!inner(driver_id)"
         )
         .eq("rides.driver_id", user.id)
         .order("created_at", { ascending: false }),
@@ -90,6 +92,11 @@ export default async function DriverDashboardPage() {
   const passengerCount = bookings.reduce(
     (total, booking) => total + Number(booking.seats_booked || 0),
     0
+  );
+  const openRideIds = new Set(
+    bookings
+      .filter((booking) => booking.payment_status === "paid" && booking.trip_status !== "completed")
+      .map((booking) => booking.ride_id)
   );
 
   return (
@@ -172,6 +179,14 @@ export default async function DriverDashboardPage() {
                 <Info label="Price Per Seat" value={`NGN ${ride.price_per_seat}`} />
                 <Info label="Pickup" value={ride.pickup_point} />
               </div>
+              {openRideIds.has(ride.id) && (
+                <form action={completeTrip} className="mt-5">
+                  <input type="hidden" name="rideId" value={ride.id} />
+                  <button className="rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-[#04130c]">
+                    Mark Trip Completed
+                  </button>
+                </form>
+              )}
             </Link>
           ))}
         </DriverSection>
@@ -193,7 +208,7 @@ export default async function DriverDashboardPage() {
                   <p className="mt-2 text-sm text-slate-400">{booking.phone}</p>
                 </div>
                 <span className="w-fit rounded-full bg-emerald-500/10 px-4 py-2 text-xs font-bold uppercase text-emerald-300">
-                  {booking.payment_status}
+                  {booking.trip_status || booking.payment_status}
                 </span>
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
