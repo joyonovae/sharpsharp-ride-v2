@@ -72,7 +72,7 @@ export default function ApplyDriverPage() {
 
       const uploadedVehicleImageUrl = publicUrlData.publicUrl;
 
-      const { error: applicationError } = await supabase
+      const { data: application, error: applicationError } = await supabase
         .from("driver_applications")
         .insert({
           user_id: user.id,
@@ -89,10 +89,14 @@ export default function ApplyDriverPage() {
           seat_count: Number(seatCount),
           vehicle_image_url: uploadedVehicleImageUrl,
           status: "pending",
-        });
+        })
+        .select("id")
+        .single();
 
-      if (applicationError) {
-        setErrorMessage(applicationError.message || "Could not submit application.");
+      if (applicationError || !application) {
+        setErrorMessage(
+          applicationError?.message || "Could not submit application."
+        );
         setSubmitting(false);
         return;
       }
@@ -103,11 +107,7 @@ export default function ApplyDriverPage() {
         .eq("id", user.id);
 
       if (profileError) {
-        setErrorMessage(
-          profileError.message || "Application saved, but profile update failed."
-        );
-        setSubmitting(false);
-        return;
+        console.error("Driver profile status update failed:", profileError);
       }
 
       const { error: notificationError } = await supabase.from("notifications").insert({
@@ -124,13 +124,31 @@ export default function ApplyDriverPage() {
         console.error("Driver application notification failed:", notificationError);
       }
 
-      const emailResponse = await fetch("/api/emails/driver-application-submitted", {
-        method: "POST",
-      });
+      const emailResponse = await fetch(
+        "/api/emails/driver-application-submitted",
+        {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            applicationId: application.id,
+          }),
+        }
+      );
 
-      if (!emailResponse.ok) {
-        const emailResult = await emailResponse.json();
+      const emailResult = await emailResponse.json();
+
+      if (!emailResponse.ok || !emailResult.success) {
         console.error("Driver application email failed:", emailResult);
+        setErrorMessage(
+          `Your application was submitted, but the confirmation email could not be sent: ${
+            emailResult.message || emailResult.error || "Unknown email error"
+          }`
+        );
+        setSubmitting(false);
+        return;
       }
 
       window.location.href = "/apply/driver/review";
