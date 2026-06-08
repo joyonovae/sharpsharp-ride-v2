@@ -181,24 +181,24 @@ export default function HomePage() {
 
             <div className="mt-8 flex flex-wrap justify-start gap-3">
               <Link
-                href={actionHref("/rides")}
+                href="/signup"
                 className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
               >
-                Shared Rides
+                Get Started
               </Link>
 
               <Link
-                href={actionHref("/rent")}
-                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
-              >
-                Rent a Car
-              </Link>
-
-              <Link
-                href={actionHref("/offer-a-ride")}
+                href="/offer-a-ride"
                 className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
               >
                 Offer a Ride
+              </Link>
+
+              <Link
+                href="/rides"
+                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
+              >
+                Browse Rides
               </Link>
             </div>
           </div>
