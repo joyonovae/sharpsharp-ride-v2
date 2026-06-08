@@ -10,8 +10,8 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
         
         {/* LOGO + DESCRIPTION */}
-        <div className="flex flex-col justify-center md:self-stretch">
-          <Link href="/" className="inline-flex shrink-0 items-center">
+        <div className="flex flex-col md:justify-start md:pt-1">
+          <Link href="/" className="inline-flex w-fit shrink-0 items-center">
   <Image
     src={FOOTER_LOGO}
     alt="SharpSharp Ride footer logo"
