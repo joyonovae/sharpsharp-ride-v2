@@ -10,18 +10,18 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr] lg:px-8">
         
         {/* LOGO + DESCRIPTION */}
-        <div>
+        <div className="flex flex-col justify-center md:self-stretch">
           <Link href="/" className="inline-flex shrink-0 items-center">
   <Image
     src={FOOTER_LOGO}
     alt="SharpSharp Ride footer logo"
-    width={150}
-    height={45}
-    className="h-10 w-auto object-contain opacity-90 transition hover:opacity-100 sm:h-11 lg:h-12"
+    width={180}
+    height={54}
+    className="h-12 w-auto object-contain opacity-90 transition hover:opacity-100 sm:h-[3.3rem] lg:h-[3.6rem]"
   />
 </Link>
 
-          <p className="mt-5 max-w-md text-sm leading-7 text-white/70">
+          <p className="mt-3 max-w-md text-sm leading-7 text-white/70">
             SharpSharp Ride helps people move smarter with ride booking, car rentals,
             and package delivery in one clean experience.
           </p>
