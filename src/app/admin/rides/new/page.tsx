@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminRide } from "./actions";
-import { Car, MapPin, User, Users } from "lucide-react";
+import { User } from "lucide-react";
 
 export default async function AdminCreateRidePage({
   searchParams,

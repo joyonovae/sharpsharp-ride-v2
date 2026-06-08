@@ -120,10 +120,7 @@ export default function CheckoutClient() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email,
-          amount: totalAmount,
           rideId: ride.id,
-          userId,
           fullName: fullName.trim(),
           phone: phone.trim(),
           seats,
@@ -139,8 +136,10 @@ export default function CheckoutClient() {
       }
 
       window.location.href = data.authorization_url;
-    } catch (error: any) {
-      setErrorMessage(error.message || "Payment error.");
+    } catch (error: unknown) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Payment error."
+      );
       setSubmitting(false);
     }
   }

@@ -110,7 +110,7 @@ export default function ApplyDriverPage() {
         return;
       }
 
-      await supabase.from("notifications").insert({
+      const { error: notificationError } = await supabase.from("notifications").insert({
         user_id: user.id,
         title: "Driver Application Submitted",
         message:
@@ -120,9 +120,18 @@ export default function ApplyDriverPage() {
         is_read: false,
       });
 
-      await fetch("/api/emails/driver-application-submitted", {
+      if (notificationError) {
+        console.error("Driver application notification failed:", notificationError);
+      }
+
+      const emailResponse = await fetch("/api/emails/driver-application-submitted", {
         method: "POST",
       });
+
+      if (!emailResponse.ok) {
+        const emailResult = await emailResponse.json();
+        console.error("Driver application email failed:", emailResult);
+      }
 
       window.location.href = "/apply/driver/review";
     } catch {

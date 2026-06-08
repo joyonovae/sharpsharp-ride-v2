@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Server error.";
+}
 
 export async function POST(request: Request) {
   try {
@@ -24,19 +29,61 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    const email = String(body.email || "").trim();
-    const amount = Number(body.amount || 0);
+    if (!user?.email) {
+      return NextResponse.json(
+        { status: false, message: "Please log in before booking." },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
     const rideId = String(body.rideId || "").trim();
-    const userId = String(body.userId || "").trim();
     const fullName = String(body.fullName || "").trim();
     const phone = String(body.phone || "").trim();
     const seats = Number(body.seats || 1);
 
-    if (!email || amount <= 0 || !rideId || !userId || !fullName || !phone || seats < 1) {
+    if (!rideId || !fullName || !phone || !Number.isInteger(seats) || seats < 1) {
       return NextResponse.json(
         { status: false, message: "Missing payment or booking details." },
+        { status: 400 }
+      );
+    }
+
+    const { data: ride, error: rideError } = await supabase
+      .from("rides")
+      .select("id, available_seats, price_per_seat")
+      .eq("id", rideId)
+      .single();
+
+    if (rideError || !ride) {
+      return NextResponse.json(
+        { status: false, message: "Ride not found." },
+        { status: 404 }
+      );
+    }
+
+    if (seats > Number(ride.available_seats)) {
+      return NextResponse.json(
+        {
+          status: false,
+          message: `Only ${ride.available_seats} seat(s) available.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const amountKobo = Math.round(
+      Number(ride.price_per_seat) * seats * 100
+    );
+
+    if (!Number.isSafeInteger(amountKobo) || amountKobo <= 0) {
+      return NextResponse.json(
+        { status: false, message: "Ride price is invalid." },
         { status: 400 }
       );
     }
@@ -48,13 +95,13 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email,
-        amount: Math.round(amount * 100),
+        email: user.email,
+        amount: amountKobo,
         currency: "NGN",
         callback_url: `${siteUrl}/booking-success`,
         metadata: {
           rideId,
-          userId,
+          userId: user.id,
           fullName,
           phone,
           seats,
@@ -79,9 +126,9 @@ export async function POST(request: Request) {
       authorization_url: data.data.authorization_url,
       reference: data.data.reference,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { status: false, message: error.message || "Server error." },
+      { status: false, message: getErrorMessage(error) },
       { status: 500 }
     );
   }

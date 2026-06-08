@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getAuthUserEmail } from "@/lib/email/getAuthUserEmail";
 import { sendDriverStatusEmail } from "@/lib/email/sendDriverStatusEmail";
 
 async function requireAdmin() {
@@ -21,11 +23,11 @@ async function requireAdmin() {
 
   if (profile?.role !== "admin") throw new Error("Not authorized");
 
-  return supabase;
+  return createAdminClient();
 }
 
 async function fetchApplicationAndProfile(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   appId: string
 ) {
   const { data: application, error: applicationError } = await supabase
@@ -36,25 +38,16 @@ async function fetchApplicationAndProfile(
 
   if (applicationError) {
     console.error("Driver application fetch failed:", applicationError);
-    return { application: null, profile: null };
+    return { application: null, email: null };
   }
 
   if (!application?.user_id) {
     console.error("Driver application was not found or has no user_id.");
-    return { application: null, profile: null };
+    return { application: null, email: null };
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("id,email")
-    .eq("id", application.user_id)
-    .maybeSingle();
-
-  if (profileError) {
-    console.error("Driver profile fetch failed:", profileError);
-  }
-
-  return { application, profile };
+  const email = await getAuthUserEmail(application.user_id);
+  return { application, email };
 }
 
 export async function approveDriver(formData: FormData) {
@@ -67,7 +60,7 @@ export async function approveDriver(formData: FormData) {
     return;
   }
 
-  const { application, profile } = await fetchApplicationAndProfile(
+  const { application, email } = await fetchApplicationAndProfile(
     supabase,
     appId
   );
@@ -119,20 +112,18 @@ export async function approveDriver(formData: FormData) {
     console.error("Driver approval notification failed:", notificationError);
   }
 
-  if (profile?.email) {
-    try {
-      const emailResult = await sendDriverStatusEmail(
-        profile.email,
-        application.full_name || "Driver",
-        "approved"
-      );
+  if (email) {
+    const emailResult = await sendDriverStatusEmail(
+      email,
+      application.full_name || "Driver",
+      "approved"
+    );
 
-      console.log("Driver approval email result:", emailResult);
-    } catch (error) {
-      console.error("Driver approval email failed:", error);
+    if (!emailResult.success) {
+      console.error("Driver approval email failed:", emailResult.error);
     }
   } else {
-    console.error("Driver approval email skipped: profile email is missing.");
+    console.error("Driver approval email skipped: auth email is missing.");
   }
 
   revalidatePath("/admin/driver-applications");
@@ -151,7 +142,7 @@ export async function rejectDriver(formData: FormData) {
     return;
   }
 
-  const { application, profile } = await fetchApplicationAndProfile(
+  const { application, email } = await fetchApplicationAndProfile(
     supabase,
     appId
   );
@@ -203,20 +194,18 @@ export async function rejectDriver(formData: FormData) {
     console.error("Driver rejection notification failed:", notificationError);
   }
 
-  if (profile?.email) {
-    try {
-      const emailResult = await sendDriverStatusEmail(
-        profile.email,
-        application.full_name || "Driver",
-        "rejected"
-      );
+  if (email) {
+    const emailResult = await sendDriverStatusEmail(
+      email,
+      application.full_name || "Driver",
+      "rejected"
+    );
 
-      console.log("Driver rejection email result:", emailResult);
-    } catch (error) {
-      console.error("Driver rejection email failed:", error);
+    if (!emailResult.success) {
+      console.error("Driver rejection email failed:", emailResult.error);
     }
   } else {
-    console.error("Driver rejection email skipped: profile email is missing.");
+    console.error("Driver rejection email skipped: auth email is missing.");
   }
 
   revalidatePath("/admin/driver-applications");

@@ -325,7 +325,7 @@ export default function HomePage() {
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-300">
               SharpSharp Ride is a modern mobility platform designed to make
               transportation across Nigeria faster, safer, and more affordable.
-              Whether you're booking a shared ride, renting a car, or sending a
+              Whether you&apos;re booking a shared ride, renting a car, or sending a
               package — everything is simplified in one place.
             </p>
 
@@ -402,7 +402,7 @@ export default function HomePage() {
             </h2>
 
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-              Whether you’re booking a seat, renting a car, or sending a
+              Whether you&apos;re booking a seat, renting a car, or sending a
               package, SharpSharp Ride keeps the process simple, secure, and
               fast.
             </p>

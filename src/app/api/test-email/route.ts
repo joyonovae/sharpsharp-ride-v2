@@ -38,5 +38,5 @@ export async function GET() {
     `,
   });
 
-  return NextResponse.json(result);
+  return NextResponse.json(result, { status: result.success ? 200 : 502 });
 }

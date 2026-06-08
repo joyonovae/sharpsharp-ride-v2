@@ -1,8 +1,25 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Server error.";
+}
 
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "Please log in to verify this booking." },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const reference = String(body.reference || "").trim();
 
@@ -50,9 +67,17 @@ export async function POST(request: Request) {
     const phone = String(metadata.phone || "").trim();
     const seats = Number(metadata.seats || 1);
 
-    if (!rideId || !userId || !fullName || !phone || seats < 1) {
+    if (
+      !rideId ||
+      !userId ||
+      userId !== user.id ||
+      !fullName ||
+      !phone ||
+      !Number.isInteger(seats) ||
+      seats < 1
+    ) {
       return NextResponse.json(
-        { error: "Missing booking metadata from Paystack." },
+        { error: "Invalid booking metadata from Paystack." },
         { status: 400 }
       );
     }
@@ -74,15 +99,6 @@ export async function POST(request: Request) {
       });
     }
 
-    await admin.from("profiles").upsert(
-      {
-        id: userId,
-        role: "passenger",
-        driver_status: "none",
-      },
-      { onConflict: "id" }
-    );
-
     const { data: ride, error: rideError } = await admin
       .from("rides")
       .select("id, available_seats, price_per_seat")
@@ -93,46 +109,37 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Ride not found." }, { status: 404 });
     }
 
-    const availableSeats = Number(ride.available_seats);
+    const expectedAmountKobo = Math.round(
+      seats * Number(ride.price_per_seat) * 100
+    );
+    const paidAmountKobo = Number(verifyData.data.amount);
 
-    if (seats > availableSeats) {
+    if (
+      verifyData.data.currency !== "NGN" ||
+      paidAmountKobo !== expectedAmountKobo
+    ) {
       return NextResponse.json(
-        { error: `Only ${availableSeats} seat(s) available.` },
+        { error: "The paid amount does not match this booking." },
         { status: 400 }
       );
     }
 
-    const totalAmount = seats * Number(ride.price_per_seat);
+    const { data: booking, error: bookingError } = await admin.rpc(
+      "complete_paid_ride_booking",
+      {
+        p_ride_id: rideId,
+        p_user_id: userId,
+        p_full_name: fullName,
+        p_phone: phone,
+        p_seats: seats,
+        p_total_amount: expectedAmountKobo / 100,
+        p_payment_reference: reference,
+      }
+    );
 
-    const { error: bookingError } = await admin.from("ride_bookings").insert({
-      ride_id: rideId,
-      user_id: userId,
-      full_name: fullName,
-      phone,
-      seats_booked: seats,
-      total_amount: totalAmount,
-      booking_reference: reference,
-      payment_reference: reference,
-      payment_status: "paid",
-    });
-
-    if (bookingError) {
+    if (bookingError || !booking) {
       return NextResponse.json(
-        { error: bookingError.message },
-        { status: 400 }
-      );
-    }
-
-    const { error: seatError } = await admin
-      .from("rides")
-      .update({
-        available_seats: availableSeats - seats,
-      })
-      .eq("id", rideId);
-
-    if (seatError) {
-      return NextResponse.json(
-        { error: seatError.message },
+        { error: bookingError?.message || "Could not complete booking." },
         { status: 400 }
       );
     }
@@ -143,9 +150,9 @@ export async function POST(request: Request) {
       rideId,
       seats,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: error.message || "Server error." },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

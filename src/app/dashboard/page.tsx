@@ -69,7 +69,7 @@ type Notification = {
   message: string;
   type: string | null;
   is_read: boolean;
-  action_url: string | null;
+  link: string | null;
   created_at: string;
 };
 
@@ -110,7 +110,7 @@ export default async function DashboardPage() {
 
   const { data: notificationsData } = await supabase
     .from("notifications")
-    .select("id, title, message, type, is_read, action_url, created_at")
+    .select("id, title, message, type, is_read, link, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(5);
@@ -285,9 +285,9 @@ export default async function DashboardPage() {
                   </div>
                 );
 
-                if (notification.action_url) {
+                if (notification.link) {
                   return (
-                    <Link key={notification.id} href={notification.action_url}>
+                    <Link key={notification.id} href={notification.link}>
                       {content}
                     </Link>
                   );

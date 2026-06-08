@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Something went wrong.";
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -28,9 +32,9 @@ export async function POST(request: Request) {
       success: true,
       message: "Message received successfully.",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: error.message || "Something went wrong." },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }

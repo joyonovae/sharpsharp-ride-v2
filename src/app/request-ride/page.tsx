@@ -97,7 +97,7 @@ function RequestRideContent() {
       return;
     }
 
-    await supabase.from("notifications").insert({
+    const { error: notificationError } = await supabase.from("notifications").insert({
       user_id: user.id,
       title: "Ride request received",
       message: `Your ride request from ${form.from_city} to ${form.to_city} has been received and is being reviewed.`,
@@ -105,6 +105,19 @@ function RequestRideContent() {
       is_read: false,
       link: "/notifications",
     });
+
+    if (notificationError) {
+      console.error("Ride request notification failed:", notificationError);
+    }
+
+    const emailResponse = await fetch("/api/emails/ride-request-submitted", {
+      method: "POST",
+    });
+
+    if (!emailResponse.ok) {
+      const emailResult = await emailResponse.json();
+      console.error("Ride request email failed:", emailResult);
+    }
 
     setLoading(false);
     router.push("/dashboard");

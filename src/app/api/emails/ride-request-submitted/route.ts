@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { rideRequestSubmittedTemplate } from "@/lib/email/templates";
 
-export async function POST(request: Request) {
+export async function POST() {
   const supabase = await createClient();
 
   const {
@@ -18,13 +18,26 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = await request.json();
+  const { data: rideRequest, error: requestError } = await supabase
+    .from("ride_requests")
+    .select("full_name, from_city, to_city, travel_date")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (requestError || !rideRequest) {
+    return NextResponse.json(
+      { success: false, message: "Ride request could not be loaded." },
+      { status: 404 }
+    );
+  }
 
   const template = rideRequestSubmittedTemplate({
-    name: body.full_name || "there",
-    fromCity: body.from_city || "your pickup city",
-    toCity: body.to_city || "your destination",
-    travelDate: body.travel_date || "your selected date",
+    name: rideRequest.full_name || "there",
+    fromCity: rideRequest.from_city || "your pickup city",
+    toCity: rideRequest.to_city || "your destination",
+    travelDate: rideRequest.travel_date || "your selected date",
   });
 
   const result = await sendEmail({
@@ -33,7 +46,5 @@ export async function POST(request: Request) {
     html: template.html,
   });
 
-  console.log("Ride request submitted email result:", result);
-
-  return NextResponse.json(result);
+  return NextResponse.json(result, { status: result.success ? 200 : 502 });
 }

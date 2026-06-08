@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type CreateNotificationParams = {
   userId: string;
@@ -15,7 +15,7 @@ export async function createNotification({
   type = "info",
   link = null,
 }: CreateNotificationParams) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   if (!userId || !title || !message) {
     return;
@@ -32,5 +32,8 @@ export async function createNotification({
 
   if (error) {
     console.error("Notification creation failed:", error.message);
+    return { success: false, error: error.message };
   }
+
+  return { success: true };
 }
