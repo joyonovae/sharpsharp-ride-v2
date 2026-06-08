@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { loginWithGoogle, loginWithMagicLink } from "./actions";
+import { getSafeNextPath } from "@/lib/auth/redirects";
 
 export default async function LoginPage({
   searchParams,
@@ -11,7 +12,7 @@ export default async function LoginPage({
   }>;
 }) {
   const params = await searchParams;
-  const next = params?.next?.startsWith("/") ? params.next : "/dashboard";
+  const next = getSafeNextPath(params?.next);
 
   return (
     <section className="min-h-screen bg-[linear-gradient(135deg,#031326_0%,#051a33_42%,#062445_100%)] px-5 py-16 text-white lg:px-8">

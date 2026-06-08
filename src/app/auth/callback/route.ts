@@ -1,13 +1,6 @@
 import { NextResponse } from "next/server";
+import { getSafeNextPath } from "@/lib/auth/redirects";
 import { createClient } from "@/lib/supabase/server";
-
-function getSafeNextPath(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/dashboard";
-  }
-
-  return value;
-}
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -15,23 +8,35 @@ export async function GET(request: Request) {
   const next = getSafeNextPath(requestUrl.searchParams.get("next"));
 
   if (!code) {
+    console.error("Auth callback failed: authorization code is missing.");
     return NextResponse.redirect(
-      new URL("/login?error=No auth code found", requestUrl.origin)
+      new URL("/login?error=auth_callback_failed", requestUrl.origin)
     );
   }
 
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      console.error("Auth callback code exchange failed:", {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+      });
+      return NextResponse.redirect(
+        new URL("/login?error=auth_callback_failed", requestUrl.origin)
+      );
+    }
 
-  if (error) {
+    return NextResponse.redirect(new URL(next, requestUrl.origin));
+  } catch (error) {
+    console.error(
+      "Unexpected auth callback failure:",
+      error instanceof Error ? error.message : error
+    );
     return NextResponse.redirect(
-      new URL(
-        `/login?error=${encodeURIComponent(error.message)}`,
-        requestUrl.origin
-      )
+      new URL("/login?error=auth_callback_failed", requestUrl.origin)
     );
   }
-
-  return NextResponse.redirect(new URL(next, requestUrl.origin));
 }
