@@ -76,24 +76,28 @@ function RequestRideContent() {
       return;
     }
 
-    const { error: insertError } = await supabase.from("ride_requests").insert({
-      user_id: user.id,
-      full_name: form.full_name,
-      phone: form.phone,
-      from_city: form.from_city,
-      to_city: form.to_city,
-      travel_date: form.travel_date,
-      preferred_time: form.preferred_time,
-      passenger_count: Number(form.passenger_count),
-      pickup_point: form.pickup_point,
-      dropoff_point: form.dropoff_point,
-      trip_notes: form.trip_notes,
-      status: "pending",
-    });
+    const { data: rideRequest, error: insertError } = await supabase
+      .from("ride_requests")
+      .insert({
+        user_id: user.id,
+        full_name: form.full_name,
+        phone: form.phone,
+        from_city: form.from_city,
+        to_city: form.to_city,
+        travel_date: form.travel_date,
+        preferred_time: form.preferred_time,
+        passenger_count: Number(form.passenger_count),
+        pickup_point: form.pickup_point,
+        dropoff_point: form.dropoff_point,
+        trip_notes: form.trip_notes,
+        status: "pending",
+      })
+      .select("id")
+      .single();
 
-    if (insertError) {
+    if (insertError || !rideRequest) {
       setLoading(false);
-      setError(insertError.message);
+      setError(insertError?.message || "Could not save your ride request.");
       return;
     }
 
@@ -104,19 +108,26 @@ function RequestRideContent() {
       type: "ride_request_submitted",
       is_read: false,
       link: "/notifications",
+      dedupe_key: `ride_request_submitted:${rideRequest.id}`,
     });
 
     if (notificationError) {
       console.error("Ride request notification failed:", notificationError);
     }
 
-    const emailResponse = await fetch("/api/emails/ride-request-submitted", {
-      method: "POST",
-    });
+    try {
+      const emailResponse = await fetch("/api/emails/ride-request-submitted", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId: rideRequest.id }),
+      });
 
-    if (!emailResponse.ok) {
-      const emailResult = await emailResponse.json();
-      console.error("Ride request email failed:", emailResult);
+      if (!emailResponse.ok) {
+        const emailResult = await emailResponse.json();
+        console.error("Ride request email failed:", emailResult);
+      }
+    } catch (emailError) {
+      console.error("Ride request email request failed:", emailError);
     }
 
     setLoading(false);

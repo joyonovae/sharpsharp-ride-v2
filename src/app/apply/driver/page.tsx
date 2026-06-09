@@ -117,6 +117,7 @@ export default function ApplyDriverPage() {
           "Your driver application has been received and is currently under review.",
         type: "driver_application",
         link: "/apply/driver/review",
+        dedupe_key: `driver_application_submitted:${application.id}`,
         is_read: false,
       });
 
@@ -124,31 +125,28 @@ export default function ApplyDriverPage() {
         console.error("Driver application notification failed:", notificationError);
       }
 
-      const emailResponse = await fetch(
-        "/api/emails/driver-application-submitted",
-        {
-          method: "POST",
-          credentials: "same-origin",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            applicationId: application.id,
-          }),
-        }
-      );
-
-      const emailResult = await emailResponse.json();
-
-      if (!emailResponse.ok || !emailResult.success) {
-        console.error("Driver application email failed:", emailResult);
-        setErrorMessage(
-          `Your application was submitted, but the confirmation email could not be sent: ${
-            emailResult.message || emailResult.error || "Unknown email error"
-          }`
+      try {
+        const emailResponse = await fetch(
+          "/api/emails/driver-application-submitted",
+          {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              applicationId: application.id,
+            }),
+          }
         );
-        setSubmitting(false);
-        return;
+
+        const emailResult = await emailResponse.json();
+
+        if (!emailResponse.ok || !emailResult.success) {
+          console.error("Driver application email failed:", emailResult);
+        }
+      } catch (emailError) {
+        console.error("Driver application email request failed:", emailError);
       }
 
       window.location.href = "/apply/driver/review";

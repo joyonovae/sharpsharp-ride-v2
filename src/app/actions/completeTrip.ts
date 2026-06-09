@@ -48,7 +48,7 @@ export async function completeTrip(formData: FormData) {
   if (error) throw new Error(error.message);
   if (!completedBookings?.length) return;
 
-  await Promise.all(
+  const passengerResults = await Promise.allSettled(
     completedBookings.map(async (booking) => {
       await createNotification({
         userId: booking.user_id,
@@ -73,26 +73,36 @@ export async function completeTrip(formData: FormData) {
     })
   );
 
-  if (ride.driver_id) {
-    await createNotification({
-      userId: ride.driver_id,
-      title: "Trip completed",
-      message: `Your ${ride.from_city} to ${ride.to_city} trip has been marked completed.`,
-      type: "trip_completed",
-      link: "/dashboard/driver",
-      dedupeKey: `trip_completed_driver:${rideId}`,
-    });
+  passengerResults.forEach((result) => {
+    if (result.status === "rejected") {
+      console.error("Passenger trip completion communication failed:", result.reason);
+    }
+  });
 
-    const email = await getAuthUserEmail(ride.driver_id);
-    if (email) {
-      const template = tripCompletedTemplate({
-        name: ride.driver_name || profile?.full_name || "Driver",
-        audience: "driver",
-        fromCity: ride.from_city,
-        toCity: ride.to_city,
+  if (ride.driver_id) {
+    try {
+      await createNotification({
+        userId: ride.driver_id,
+        title: "Trip completed",
+        message: `Your ${ride.from_city} to ${ride.to_city} trip has been marked completed.`,
+        type: "trip_completed",
+        link: "/dashboard/driver",
+        dedupeKey: `trip_completed_driver:${rideId}`,
       });
-      const result = await sendEmail({ to: email, ...template });
-      if (!result.success) console.error("Driver trip completion email failed:", result.error);
+
+      const email = await getAuthUserEmail(ride.driver_id);
+      if (email) {
+        const template = tripCompletedTemplate({
+          name: ride.driver_name || profile?.full_name || "Driver",
+          audience: "driver",
+          fromCity: ride.from_city,
+          toCity: ride.to_city,
+        });
+        const result = await sendEmail({ to: email, ...template });
+        if (!result.success) console.error("Driver trip completion email failed:", result.error);
+      }
+    } catch (communicationError) {
+      console.error("Driver trip completion communication failed:", communicationError);
     }
   }
 

@@ -103,6 +103,10 @@ export async function POST(request: Request) {
       emailId: result.data?.id || null,
     });
   } catch (error: unknown) {
+    console.error(
+      "Driver application submitted email failed:",
+      error instanceof Error ? error.message : "Unknown server error."
+    );
     return NextResponse.json(
       {
         success: false,

@@ -5,8 +5,8 @@ type CreateNotificationParams = {
   title: string;
   message: string;
   type?: string;
-  link?: string | null;
-  dedupeKey?: string | null;
+  link: string;
+  dedupeKey: string;
 };
 
 export async function createNotification({
@@ -14,33 +14,39 @@ export async function createNotification({
   title,
   message,
   type = "info",
-  link = null,
-  dedupeKey = null,
+  link,
+  dedupeKey,
 }: CreateNotificationParams) {
-  const supabase = createAdminClient();
-
-  if (!userId || !title || !message) {
+  if (!userId || !title || !message || !link || !dedupeKey) {
     return { success: false, created: false, error: "Missing notification details" };
   }
 
-  const { error } = await supabase.from("notifications").insert({
-    user_id: userId,
-    title,
-    message,
-    type,
-    link,
-    dedupe_key: dedupeKey,
-    is_read: false,
-  });
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase.from("notifications").insert({
+      user_id: userId,
+      title,
+      message,
+      type,
+      link,
+      dedupe_key: dedupeKey,
+      is_read: false,
+    });
 
-  if (error) {
-    if (error.code === "23505" && dedupeKey) {
-      return { success: true, created: false, duplicate: true };
+    if (error) {
+      if (error.code === "23505") {
+        return { success: true, created: false, duplicate: true };
+      }
+
+      console.error("Notification creation failed:", error.message);
+      return { success: false, created: false, error: error.message };
     }
 
-    console.error("Notification creation failed:", error.message);
-    return { success: false, created: false, error: error.message };
+    return { success: true, created: true };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown notification error";
+    console.error("Notification creation failed:", message);
+    return { success: false, created: false, error: message };
   }
-
-  return { success: true, created: true };
 }
