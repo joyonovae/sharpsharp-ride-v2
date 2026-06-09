@@ -1,21 +1,28 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { getSupabasePublicConfig } from "@/lib/supabase/config";
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({
     request,
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey =
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
+  if (request.nextUrl.pathname === "/auth/callback") {
     return response;
   }
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+  let supabaseConfig;
+  try {
+    supabaseConfig = getSupabasePublicConfig();
+  } catch (error) {
+    console.error(
+      "Supabase proxy configuration failed:",
+      error instanceof Error ? error.message : error
+    );
+    return response;
+  }
+
+  const supabase = createServerClient(supabaseConfig.url, supabaseConfig.key, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

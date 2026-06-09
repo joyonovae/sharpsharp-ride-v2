@@ -39,11 +39,13 @@ export function getSiteOrigin({
   host,
   forwardedProtocol,
   isDevelopment,
+  preserveRequestHost = false,
 }: {
   configuredSiteUrl?: string;
   host?: string | null;
   forwardedProtocol?: string | null;
   isDevelopment: boolean;
+  preserveRequestHost?: boolean;
 }) {
   const configured = configuredSiteUrl?.trim().replace(/^["']|["']$/g, "");
 
@@ -78,6 +80,7 @@ export function getSiteOrigin({
 
   if (
     !isDevelopment &&
+    !preserveRequestHost &&
     ["sharpsharpride.com", "www.sharpsharpride.com"].includes(
       new URL(requestOrigin).hostname
     )
