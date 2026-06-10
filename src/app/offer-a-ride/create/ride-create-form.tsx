@@ -82,6 +82,8 @@ export default function RideCreateForm({ userId }: { userId: string }) {
       setErrorMessage("Driver details missing. You cannot create a ride yet.");
       return;
     }
+    const { data: accountProfile } = await supabase.from("profiles").select("account_status").eq("id", userId).single();
+    if (accountProfile?.account_status && accountProfile.account_status !== "active") { setErrorMessage("Your account is suspended. Request a review from your dashboard."); return; }
 
     const availableSeats = Number(form.available_seats);
     const approvedSeatCount = Number(driverApp.seat_count || 0);

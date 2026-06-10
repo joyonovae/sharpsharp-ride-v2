@@ -13,7 +13,7 @@ export default async function DriverProfilePage({ params }: { params: Promise<{ 
   const supabase = await createClient();
   const { data: driver, error } = await supabase
     .from("driver_applications")
-    .select("full_name, passport_photo_url, car_type, vehicle_brand, vehicle_model, vehicle_color, plate_number, seat_count, city, created_at")
+    .select("full_name, car_type, vehicle_brand, vehicle_model, vehicle_color, plate_number, seat_count, city, created_at")
     .eq("user_id", id)
     .eq("status", "approved")
     .order("created_at", { ascending: false })
@@ -32,7 +32,7 @@ export default async function DriverProfilePage({ params }: { params: Promise<{ 
 
   return <main className="min-h-screen bg-[#061116] px-5 py-10 text-white lg:px-8"><div className="mx-auto max-w-5xl space-y-8">
     <section className="flex flex-col gap-6 rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:flex-row sm:items-center">
-      <div className="h-28 w-28 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/10">{driver.passport_photo_url ? <img src={driver.passport_photo_url} alt={driver.full_name || "Driver"} className="h-full w-full object-cover"/> : <div className="flex h-full items-center justify-center text-4xl font-black">{(driver.full_name || "D")[0]}</div>}</div>
+      <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/10 text-4xl font-black">{(driver.full_name || "D")[0]}</div>
       <div><p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-400">Verified Driver</p><h1 className="mt-3 text-3xl font-black">{driver.full_name || "Approved Driver"}</h1><p className="mt-2 text-slate-400">{driver.city ? `Based in ${driver.city}` : "SharpSharp Ride approved driver"} · Active since {new Date(driver.created_at).toLocaleDateString()}</p></div>
     </section>
 

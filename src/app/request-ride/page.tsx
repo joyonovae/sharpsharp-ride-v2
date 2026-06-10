@@ -114,6 +114,8 @@ function RequestRideContent() {
       setError(insertError?.message || "Could not save your ride request.");
       return;
     }
+    const { data: accountProfile } = await supabase.from("profiles").select("account_status").eq("id", user.id).single();
+    if (accountProfile?.account_status && accountProfile.account_status !== "active") { setLoading(false); setError("Your account is suspended. Request a review from your dashboard."); return; }
 
     const { error: notificationError } = await supabase.from("notifications").insert({
       user_id: user.id,

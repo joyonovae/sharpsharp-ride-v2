@@ -423,3 +423,8 @@ export function rentalBookingTemplate({
     `),
   };
 }
+
+export function accountStatusTemplate({ name, status, reason }: { name: string; status: "suspended" | "blocked" | "reinstated" | "review_rejected" | "driver_revoked"; reason?: string }) {
+  const title = status === "driver_revoked" ? "Driver Access Revoked" : status === "reinstated" ? "Account Reinstated" : status === "review_rejected" ? "Suspension Review Update" : `Account ${status}`;
+  return { subject: title, html: emailLayout(title, `<p style="font-size:16px;line-height:1.8;color:#334155;">Hello ${name},</p><p style="font-size:16px;line-height:1.8;color:#334155;">${status === "driver_revoked" ? "Your driver access has been revoked. Your historical rides and bookings remain available." : status === "reinstated" ? "Your account has been reinstated and is active again." : status === "review_rejected" ? "Your suspension review was not approved at this time." : `Your account has been ${status}.`}</p>${reason ? `<p style="font-size:14px;line-height:1.8;color:#64748b;">Reason: ${reason}</p>` : ""}<div style="margin-top:30px;text-align:center;"><a href="https://www.sharpsharpride.com/dashboard" style="display:inline-block;background:#18c37e;color:#04130c;padding:14px 28px;border-radius:999px;text-decoration:none;font-weight:700;">View Account</a></div>`) };
+}

@@ -179,10 +179,12 @@ export default async function DashboardPage() {
     (request) =>
       ["assigned", "completed"].includes(request.status) && request.assigned_ride
   );
+  const accountRestricted = profile?.account_status && profile.account_status !== "active";
 
   return (
     <main className="w-full overflow-x-hidden bg-[#061116] px-4 py-10 text-white sm:px-5 lg:px-12">
       <div className="mx-auto w-full max-w-7xl space-y-10">
+        {accountRestricted && <section className="rounded-[2rem] border border-red-400/30 bg-red-500/10 p-6"><h2 className="text-2xl font-black text-red-200">Your account is {profile.account_status}</h2><p className="mt-2 text-slate-300">{profile.suspension_reason || "Some platform actions are temporarily unavailable."} Your booking history remains visible.</p><Link href="/account/suspension-review" className="mt-5 inline-flex rounded-full bg-emerald-500 px-6 py-3 font-bold text-[#04130c]">Request Suspension Review</Link></section>}
         <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,#0b1d33,#071820)] p-5 sm:p-7 md:p-10">
           <div className="grid min-w-0 gap-8 lg:grid-cols-[1fr_0.8fr] lg:items-center">
             <div className="min-w-0">
@@ -775,7 +777,7 @@ export default async function DashboardPage() {
 
               <div className="min-w-0">
                 <h3 className="break-words text-xl font-black">
-                  Your account is active
+                  Your account is {profile?.account_status || "active"}
                 </h3>
                 <p className="mt-1 break-words text-sm leading-6 text-slate-300">
                   You can request rides, book available rides, manage bookings,

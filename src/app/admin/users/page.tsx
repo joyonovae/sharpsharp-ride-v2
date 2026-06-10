@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { requireAdminPage } from "@/lib/admin/requireAdmin";
+import { reinstateUser, rejectSuspensionReview, suspendUser } from "./actions";
 
 export default async function AdminUsersPage() {
   const { admin } = await requireAdminPage();
-  const [{ data: profiles }, authUsers] = await Promise.all([
+  const [{ data: profiles }, authUsers, { data: reviewRequests }] = await Promise.all([
     admin
       .from("profiles")
-      .select("id, full_name, phone, role, driver_status")
+      .select("id, full_name, phone, role, driver_status, account_status, suspension_reason")
       .order("full_name", { ascending: true }),
     admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
+    admin.from("suspension_review_requests").select("*").order("created_at", { ascending: false }),
   ]);
 
   const emailById = new Map(
@@ -26,7 +28,7 @@ export default async function AdminUsersPage() {
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-400">User Management</p>
           <h1 className="mt-4 text-4xl font-black">Users and Roles</h1>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-300">
-            Read-only account overview. Driver role changes stay tied to the driver application workflow.
+            Suspend or reinstate non-admin users while preserving their history.
           </p>
         </section>
 
@@ -44,15 +46,19 @@ export default async function AdminUsersPage() {
                     {profile.role || "passenger"}
                   </span>
                 </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="mt-4 grid gap-3 sm:grid-cols-4">
                   <Info label="Phone" value={profile.phone} />
                   <Info label="Driver Status" value={profile.driver_status || "none"} />
+                  <Info label="Account Status" value={profile.account_status || "active"} />
                   <Info label="Joined" value={auth?.createdAt ? new Date(auth.createdAt).toLocaleDateString() : "Not available"} />
                 </div>
+                {profile.suspension_reason && <p className="mt-3 rounded-2xl bg-red-500/10 p-4 text-sm text-red-200">Reason: {profile.suspension_reason}</p>}
+                {profile.role !== "admin" && <div className="mt-4">{profile.account_status === "active" || !profile.account_status ? <form action={suspendUser} className="flex flex-wrap gap-2"><input type="hidden" name="userId" value={profile.id}/><select name="status" className="rounded-full bg-[#0b1d26] px-4 py-3"><option value="suspended">Suspend</option><option value="blocked">Block</option></select><input name="reason" required placeholder="Reason" className="rounded-full border border-white/15 bg-white/5 px-4 py-3"/><button className="rounded-full border border-red-400/30 px-5 py-3 font-bold text-red-300">Apply Restriction</button></form> : <form action={reinstateUser}><input type="hidden" name="userId" value={profile.id}/><button className="rounded-full bg-emerald-500 px-5 py-3 font-bold text-[#04130c]">Reinstate User</button></form>}</div>}
               </div>
             );
           })}
         </section>
+        <section><h2 className="text-2xl font-black">Suspension Review Requests</h2><div className="mt-4 grid gap-4">{!reviewRequests?.length ? <div className="rounded-3xl border border-dashed border-white/15 bg-white/5 p-6">No review requests.</div> : reviewRequests.map((request) => <div key={request.id} className="rounded-3xl border border-white/10 bg-white/5 p-5"><div className="flex justify-between"><strong>{request.status}</strong><span className="text-sm text-slate-400">{new Date(request.created_at).toLocaleString()}</span></div><p className="mt-3">{request.explanation}</p>{request.status === "pending" && <div className="mt-4 flex flex-wrap gap-3"><form action={reinstateUser}><input type="hidden" name="userId" value={request.user_id}/><button className="rounded-full bg-emerald-500 px-5 py-3 font-bold text-[#04130c]">Approve and Reinstate</button></form><form action={rejectSuspensionReview} className="flex gap-2"><input type="hidden" name="requestId" value={request.id}/><input name="adminNote" placeholder="Admin note" className="rounded-full border border-white/15 bg-white/5 px-4"/><button className="rounded-full border border-red-400/30 px-5 py-3 font-bold text-red-300">Reject Review</button></form></div>}</div>)}</div></section>
       </div>
     </main>
   );

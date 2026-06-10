@@ -6,6 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getAuthUserEmail } from "@/lib/email/getAuthUserEmail";
 import { sendDriverStatusEmail } from "@/lib/email/sendDriverStatusEmail";
 import { createNotification } from "@/lib/notifications/createNotification";
+import { accountStatusTemplate } from "@/lib/email/templates";
+import { sendEmail } from "@/lib/email/sendEmail";
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -242,4 +244,24 @@ export async function deleteRejectedDriverApplication(formData: FormData) {
 
   revalidatePath("/admin/driver-applications");
   revalidatePath("/admin");
+}
+
+export async function revokeDriverApproval(formData: FormData) {
+  const supabase = await requireAdmin();
+  const appId = String(formData.get("appId") || "");
+  const reason = String(formData.get("reason") || "").trim() || "Driver access revoked by admin.";
+  const { data: application, error } = await supabase.from("driver_applications").select("id,user_id,full_name,status,admin_note").eq("id", appId).single();
+  if (error || !application || application.status !== "approved") throw new Error("Approved driver application not found");
+  const { data: target } = await supabase.from("profiles").select("role").eq("id", application.user_id).single();
+  if (target?.role === "admin") throw new Error("Admin driver access cannot be revoked here");
+  const { error: updateError } = await supabase.from("driver_applications").update({ status: "rejected", admin_note: `Driver approval revoked: ${reason}` }).eq("id", appId).eq("status", "approved");
+  if (updateError) throw new Error(updateError.message);
+  const { error: profileError } = await supabase.from("profiles").update({ role: "passenger", driver_status: "revoked" }).eq("id", application.user_id).neq("role", "admin");
+  if (profileError) {
+    await supabase.from("driver_applications").update({ status: "approved", admin_note: application.admin_note }).eq("id", appId).eq("status", "rejected");
+    throw new Error(`Driver profile could not be revoked: ${profileError.message}`);
+  }
+  const notification = await createNotification({ userId: application.user_id, title: "Driver access revoked", message: "Your driver access has been revoked. Historical records remain available.", type: "driver_application", link: "/dashboard", dedupeKey: `driver_access_revoked:${appId}` });
+  if (notification.created) { const email = await getAuthUserEmail(application.user_id); if (email) { const template = accountStatusTemplate({ name: application.full_name || "Driver", status: "driver_revoked", reason }); const sent = await sendEmail({ to: email, ...template }); if (!sent.success) console.error("Driver revocation email failed:", sent.error); } }
+  revalidatePath("/admin/driver-applications"); revalidatePath("/dashboard"); revalidatePath("/offer-a-ride/create");
 }

@@ -40,6 +40,8 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
+    const { data: accountProfile } = await supabase.from("profiles").select("account_status").eq("id", user.id).single();
+    if (accountProfile?.account_status && accountProfile.account_status !== "active") return NextResponse.json({ status: false, message: "Your account is suspended." }, { status: 403 });
 
     const body = await request.json();
     const rideId = String(body.rideId || "").trim();

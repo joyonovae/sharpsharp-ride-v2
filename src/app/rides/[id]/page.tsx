@@ -18,7 +18,6 @@ type Ride = {
 type DriverApplication = {
   full_name: string | null;
   phone: string | null;
-  passport_photo_url: string | null;
   car_type: string | null;
   vehicle_brand: string | null;
   vehicle_model: string | null;
@@ -54,7 +53,7 @@ export default async function RideDetailsPage({
     ? await supabase
         .from("driver_applications")
         .select(
-          "full_name, phone, passport_photo_url, car_type, vehicle_brand, vehicle_model, vehicle_color, plate_number, seat_count, vehicle_image_url"
+          "full_name, phone, car_type, vehicle_brand, vehicle_model, vehicle_color, plate_number, seat_count, vehicle_image_url"
         )
         .eq("user_id", ride.driver_id)
         .eq("status", "approved")
@@ -111,17 +110,9 @@ export default async function RideDetailsPage({
               <div className="space-y-4">
                 <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
                   <div className="h-16 w-16 overflow-hidden rounded-full border border-white/10 bg-white/10">
-                    {driverApp.passport_photo_url ? (
-                      <img
-                        src={driverApp.passport_photo_url}
-                        alt={driverApp.full_name || "Driver"}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xl font-black text-white/60">
-                        {(driverApp.full_name || "D").charAt(0)}
-                      </div>
-                    )}
+                    <div className="flex h-full w-full items-center justify-center text-xl font-black text-white/60">
+                      {(driverApp.full_name || "D").charAt(0)}
+                    </div>
                   </div>
 
                   <div>

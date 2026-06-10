@@ -16,6 +16,8 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.email) return NextResponse.json({ status: false, message: "Please log in before booking." }, { status: 401 });
+    const { data: accountProfile } = await supabase.from("profiles").select("account_status").eq("id", user.id).single();
+    if (accountProfile?.account_status && accountProfile.account_status !== "active") return NextResponse.json({ status: false, message: "Your account is suspended." }, { status: 403 });
     const body = await request.json();
     const vehicleId = String(body.vehicleId || "").trim();
     const fullName = String(body.fullName || "").trim();

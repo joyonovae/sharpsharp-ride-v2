@@ -6,11 +6,13 @@ import { createNotification } from "@/lib/notifications/createNotification";
 import { rentalApplicationTemplate } from "@/lib/email/templates";
 import { sendEmail } from "@/lib/email/sendEmail";
 import { createClient } from "@/lib/supabase/server";
+import { requireActiveAccount } from "@/lib/account/requireActiveAccount";
 
 export async function submitRentalVehicleApplication(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/rent/submit");
+  await requireActiveAccount(user.id);
 
   const image = formData.get("image");
   if (!(image instanceof File) || !image.size) throw new Error("Vehicle image is required");

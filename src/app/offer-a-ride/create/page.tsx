@@ -15,7 +15,7 @@ export default async function CreateRidePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, driver_status")
+    .select("role, driver_status, account_status")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -28,6 +28,7 @@ export default async function CreateRidePage() {
     .maybeSingle();
 
   const isApproved =
+    profile?.account_status === "active" &&
     profile?.role === "admin" ||
     profile?.role === "driver" ||
     profile?.driver_status === "approved" ||

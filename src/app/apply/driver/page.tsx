@@ -20,6 +20,7 @@ export default function ApplyDriverPage() {
   const [plateNumber, setPlateNumber] = useState("");
   const [seatCount, setSeatCount] = useState("");
   const [vehicleImage, setVehicleImage] = useState<File | null>(null);
+  const [passportPhoto, setPassportPhoto] = useState<File | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -37,7 +38,7 @@ export default function ApplyDriverPage() {
   }, [supabase]);
 
   function continueFromDriverDetails() {
-    if (!fullName.trim() || !phone.trim() || !city.trim() || !licenseNumber.trim() || !address.trim()) {
+    if (!fullName.trim() || !phone.trim() || !city.trim() || !licenseNumber.trim() || !address.trim() || !passportPhoto) {
       setErrorMessage("Complete your driver details before continuing.");
       return;
     }
@@ -79,6 +80,8 @@ export default function ApplyDriverPage() {
         setSubmitting(false);
         return;
       }
+      const { data: accountProfile } = await supabase.from("profiles").select("account_status").eq("id", user.id).single();
+      if (accountProfile?.account_status && accountProfile.account_status !== "active") { setErrorMessage("Your account is suspended. Request a review from your dashboard."); setSubmitting(false); return; }
 
       const fileExt = vehicleImage.name.split(".").pop();
       const filePath = `${user.id}/${Date.now()}.${fileExt}`;
@@ -101,6 +104,12 @@ export default function ApplyDriverPage() {
         .getPublicUrl(filePath);
 
       const uploadedVehicleImageUrl = publicUrlData.publicUrl;
+      if (!passportPhoto) { setErrorMessage("Please upload a passport photograph."); setSubmitting(false); return; }
+      if (!passportPhoto.type.startsWith("image/")) { setErrorMessage("Passport photograph must be an image."); setSubmitting(false); return; }
+      if (passportPhoto.size > 8 * 1024 * 1024) { setErrorMessage("Passport photograph must be 8 MB or smaller."); setSubmitting(false); return; }
+      const passportPath = `${user.id}/${Date.now()}.${passportPhoto.name.split(".").pop()}`;
+      const { error: passportError } = await supabase.storage.from("driver-passports").upload(passportPath, passportPhoto, { upsert: false });
+      if (passportError) { setErrorMessage(passportError.message || "Passport upload failed."); setSubmitting(false); return; }
 
       const { data: application, error: applicationError } = await supabase
         .from("driver_applications")
@@ -118,6 +127,7 @@ export default function ApplyDriverPage() {
           plate_number: plateNumber,
           seat_count: Number(seatCount),
           vehicle_image_url: uploadedVehicleImageUrl,
+          passport_photo_url: passportPath,
           status: "pending",
         })
         .select("id")
@@ -206,6 +216,7 @@ export default function ApplyDriverPage() {
                 <input type="text" placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
                 <input type="text" placeholder="Driver's license number" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
                 <textarea placeholder="Home address" value={address} onChange={(e) => setAddress(e.target.value)} required className="min-h-[120px] rounded-2xl border border-white/10 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-slate-400 md:col-span-2" />
+                <div className="rounded-2xl border border-white/10 bg-white/10 p-4 md:col-span-2"><label className="font-semibold">Passport photograph</label><p className="mt-1 text-xs text-slate-400">Required for private admin verification. It is not shown publicly.</p><input type="file" accept="image/*" required onChange={(e) => setPassportPhoto(e.target.files?.[0] ?? null)} className="mt-3 block w-full text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-[#18c37e] file:px-5 file:py-2 file:font-semibold file:text-[#04130c]"/></div>
               </div>
               <button type="button" onClick={continueFromDriverDetails} className="mt-6 h-14 w-full rounded-2xl bg-[#18c37e] font-bold text-[#04130c]">Continue to Vehicle Details</button>
             </div>}

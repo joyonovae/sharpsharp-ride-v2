@@ -4,6 +4,7 @@ import {
   approveDriver,
   deleteRejectedDriverApplication,
   rejectDriver,
+  revokeDriverApproval,
 } from "./actions";
 import {
   Car,
@@ -251,10 +252,10 @@ export default async function AdminDriverApplicationsPage() {
                     )}
 
                     {app.status === "approved" && (
-                      <div className="mt-7 inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 font-bold text-emerald-300">
+                      <div className="mt-7 flex flex-wrap gap-3"><div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 font-bold text-emerald-300">
                         <CheckCircle2 className="h-5 w-5" />
                         Driver approved
-                      </div>
+                      </div><form action={revokeDriverApproval} className="flex flex-wrap gap-2"><input type="hidden" name="appId" value={app.id}/><input name="reason" required placeholder="Revocation reason" className="rounded-full border border-white/15 bg-white/5 px-4 py-3 text-sm"/><button className="rounded-full border border-red-400/30 px-5 py-3 text-sm font-bold text-red-300">Revoke Driver Approval</button></form></div>
                     )}
 
                     {app.status === "rejected" && (

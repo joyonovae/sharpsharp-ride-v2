@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { requireActiveAccount } from "@/lib/account/requireActiveAccount";
 
 export async function submitRideReview(formData: FormData) {
   const bookingId = String(formData.get("bookingId") || "");
@@ -20,6 +21,7 @@ export async function submitRideReview(formData: FormData) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authorized");
+  await requireActiveAccount(user.id);
 
   const admin = createAdminClient();
   const { data: booking, error } = await admin
