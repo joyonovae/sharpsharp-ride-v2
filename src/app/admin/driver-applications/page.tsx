@@ -1,6 +1,5 @@
-import Image from "next/image";
-import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdminPage } from "@/lib/admin/requireAdmin";
+import { resolveStoredImageUrl } from "@/lib/storage/resolveStoredImageUrl";
 import {
   approveDriver,
   deleteRejectedDriverApplication,
@@ -13,10 +12,12 @@ import {
   IdCard,
   MapPin,
   Phone,
+  Mail,
   User,
   XCircle,
   Trash2,
 } from "lucide-react";
+import ApplicationImage from "./ApplicationImage";
 
 function getStatusStyle(status?: string | null) {
   if (status === "approved") {
@@ -31,28 +32,37 @@ function getStatusStyle(status?: string | null) {
 }
 
 export default async function AdminDriverApplicationsPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") redirect("/dashboard");
-
-  const { data: applications } = await supabase
+  const { admin } = await requireAdminPage();
+  const { data: applications } = await admin
     .from("driver_applications")
     .select("*")
     .order("created_at", { ascending: false });
 
-  const apps = applications || [];
+  const apps = await Promise.all(
+    (applications || []).map(async (application) => {
+      const [{ data: authUser }, vehicleImageUrl, passportPhotoUrl] =
+        await Promise.all([
+          admin.auth.admin.getUserById(application.user_id),
+          resolveStoredImageUrl({
+            admin,
+            value: application.vehicle_image_url,
+            fallbackBuckets: ["driver-vehicles"],
+          }),
+          resolveStoredImageUrl({
+            admin,
+            value: application.passport_photo_url,
+            fallbackBuckets: ["driver-passports", "driver-documents", "driver-vehicles"],
+          }),
+        ]);
+
+      return {
+        ...application,
+        applicant_email: authUser.user?.email || null,
+        resolved_vehicle_image_url: vehicleImageUrl,
+        resolved_passport_photo_url: passportPhotoUrl,
+      };
+    })
+  );
 
   const pendingCount = apps.filter((app) => app.status === "pending").length;
   const approvedCount = apps.filter((app) => app.status === "approved").length;
@@ -99,7 +109,7 @@ export default async function AdminDriverApplicationsPage() {
           </section>
         ) : (
           <section className="grid gap-6">
-            {apps.map((app: any) => (
+            {apps.map((app) => (
               <article
                 key={app.id}
                 className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/5"
@@ -107,36 +117,28 @@ export default async function AdminDriverApplicationsPage() {
                 <div className="grid gap-0 lg:grid-cols-[0.8fr_1.2fr]">
                   <div className="border-b border-white/10 bg-white/[0.03] p-5 lg:border-b-0 lg:border-r">
                     <div className="relative min-h-[260px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-[#08141b]">
-                      {app.vehicle_image_url ? (
-                        <Image
-                          src={app.vehicle_image_url}
-                          alt={`${app.vehicle_brand || "Vehicle"} image`}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-[260px] items-center justify-center text-slate-500">
-                          No vehicle image
-                        </div>
-                      )}
+                      <ApplicationImage
+                        src={app.resolved_vehicle_image_url}
+                        alt={`${app.vehicle_brand || "Vehicle"} image`}
+                        heightClass="h-[260px]"
+                        placeholder="Vehicle photograph is unavailable"
+                      />
                     </div>
 
-                    {app.passport_photo_url && (
-                      <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-                        <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
-                          Passport Photo
-                        </p>
+                    <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+                      <p className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-400">
+                        Passport Photo
+                      </p>
 
-                        <div className="relative h-40 overflow-hidden rounded-2xl bg-[#08141b]">
-                          <Image
-                            src={app.passport_photo_url}
-                            alt={`${app.full_name || "Driver"} passport photo`}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
+                      <div className="overflow-hidden rounded-2xl bg-[#08141b]">
+                        <ApplicationImage
+                          src={app.resolved_passport_photo_url}
+                          alt={`${app.full_name || "Driver"} passport photo`}
+                          heightClass="h-40"
+                          placeholder="Passport photograph is unavailable"
+                        />
                       </div>
-                    )}
+                    </div>
                   </div>
 
                   <div className="p-6">
@@ -172,6 +174,11 @@ export default async function AdminDriverApplicationsPage() {
                         icon={<Phone className="h-5 w-5" />}
                         label="Phone"
                         value={app.phone || "—"}
+                      />
+                      <InfoCard
+                        icon={<Mail className="h-5 w-5" />}
+                        label="Email"
+                        value={app.applicant_email || "Email unavailable"}
                       />
                       <InfoCard
                         icon={<MapPin className="h-5 w-5" />}
