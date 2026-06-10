@@ -61,6 +61,9 @@ export default function CheckoutClient() {
 
       setUserId(user.id);
       setEmail(user.email || "");
+      const { data: profile } = await supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle();
+      if (profile?.full_name) setFullName(profile.full_name);
+      if (profile?.phone) setPhone(profile.phone);
 
       if (requestId) {
         const { data: rideRequest, error: requestError } = await supabase
@@ -218,6 +221,7 @@ export default function CheckoutClient() {
           onSubmit={handleSubmit}
           className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6"
         >
+          <div><h2 className="text-xl font-bold">Passenger Details</h2><p className="mt-1 text-sm text-white/60">Confirm your details before continuing to Paystack.</p></div>
           <input
             placeholder="Full Name"
             value={fullName}

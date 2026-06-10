@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useMemo, useState } from "react";
+import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -55,6 +55,20 @@ function RequestRideContent() {
     dropoff_point: "",
     trip_notes: "",
   });
+
+  useEffect(() => {
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle();
+      setForm((current) => ({
+        ...current,
+        full_name: current.full_name || profile?.full_name || "",
+        phone: current.phone || profile?.phone || "",
+      }));
+    }
+    loadProfile();
+  }, [supabase]);
 
   function updateField(name: string, value: string) {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -172,6 +186,7 @@ function RequestRideContent() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
+            <div><p className="text-sm font-bold text-emerald-300">Your contact details</p><p className="mt-1 text-xs text-white/50">We use these details to contact you when a ride is matched.</p></div>
             <div className="grid gap-4 md:grid-cols-2">
               <Input
                 label="Full name"
@@ -212,47 +227,15 @@ function RequestRideContent() {
                 onChange={(v) => updateField("travel_date", v)}
                 required
               />
-              <Input
-                label="Preferred time"
-                placeholder="Morning / 8:00 AM"
-                value={form.preferred_time}
-                onChange={(v) => updateField("preferred_time", v)}
-              />
-              <Input
-                label="Passengers"
-                type="number"
-                min="1"
-                value={form.passenger_count}
-                onChange={(v) => updateField("passenger_count", v)}
-                required
-              />
+              <Select label="Preferred time (optional)" value={form.preferred_time} onChange={(v) => updateField("preferred_time", v)} options={["Morning", "Afternoon", "Evening", "Flexible"]}/>
+              <Select label="Passengers" value={form.passenger_count} onChange={(v) => updateField("passenger_count", v)} options={["1","2","3","4","5","6"]} required/>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <Input
-                label="Pickup point"
-                value={form.pickup_point}
-                onChange={(v) => updateField("pickup_point", v)}
-              />
-              <Input
-                label="Dropoff point"
-                value={form.dropoff_point}
-                onChange={(v) => updateField("dropoff_point", v)}
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-white/80">
-                Trip notes
-              </label>
-              <textarea
-                value={form.trip_notes}
-                onChange={(e) => updateField("trip_notes", e.target.value)}
-                rows={4}
-                placeholder="Any luggage, special timing, or extra details?"
-                className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-emerald-400"
-              />
-            </div>
+            <details className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <summary className="cursor-pointer font-bold text-white">Add pickup, dropoff, or trip notes (optional)</summary>
+              <div className="mt-4 grid gap-4 md:grid-cols-2"><Input label="Pickup point" value={form.pickup_point} onChange={(v) => updateField("pickup_point", v)}/><Input label="Dropoff point" value={form.dropoff_point} onChange={(v) => updateField("dropoff_point", v)}/></div>
+              <textarea value={form.trip_notes} onChange={(e) => updateField("trip_notes", e.target.value)} rows={4} placeholder="Any luggage, special timing, or extra details?" className="mt-4 w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-emerald-400"/>
+            </details>
 
             <button
               type="submit"
@@ -301,4 +284,8 @@ function Input({
       />
     </div>
   );
+}
+
+function Select({ label, value, onChange, options, required = false }: { label: string; value: string; onChange: (value: string) => void; options: string[]; required?: boolean }) {
+  return <div><label className="mb-2 block text-sm font-medium text-white/80">{label}</label><select value={value} required={required} onChange={(e) => onChange(e.target.value)} className="w-full rounded-2xl border border-white/10 bg-[#0b1d26] px-4 py-3 text-sm text-white outline-none focus:border-emerald-400"><option value="">Select an option</option>{options.map((option) => <option key={option} value={option}>{option}</option>)}</select></div>;
 }

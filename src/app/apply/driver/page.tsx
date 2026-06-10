@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -23,6 +23,36 @@ export default function ApplyDriverPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [step, setStep] = useState(1);
+
+  useEffect(() => {
+    async function loadProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle();
+      if (profile?.full_name) setFullName(profile.full_name);
+      if (profile?.phone) setPhone(profile.phone);
+    }
+    loadProfile();
+  }, [supabase]);
+
+  function continueFromDriverDetails() {
+    if (!fullName.trim() || !phone.trim() || !city.trim() || !licenseNumber.trim() || !address.trim()) {
+      setErrorMessage("Complete your driver details before continuing.");
+      return;
+    }
+    setErrorMessage("");
+    setStep(2);
+  }
+
+  function continueFromVehicleDetails() {
+    if (!vehicleType || !vehicleBrand.trim() || !vehicleModel.trim() || !vehicleColor.trim() || !plateNumber.trim() || !seatCount || !vehicleImage) {
+      setErrorMessage("Complete the required vehicle details and upload an image.");
+      return;
+    }
+    setErrorMessage("");
+    setStep(3);
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -162,13 +192,14 @@ export default function ApplyDriverPage() {
         <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur md:p-8">
           <h1 className="text-4xl font-black">Apply as a Driver</h1>
           <p className="mt-3 text-lg text-slate-300">
-            Fill in your driver details and vehicle details. Once submitted,
-            your application will go under review before you can offer rides.
+            Complete three short steps. Your application will be reviewed before you can offer rides.
           </p>
+          <p className="mt-5 text-sm font-bold uppercase tracking-[0.2em] text-emerald-400">Step {step} of 3</p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-8">
-            <div>
+            {step === 1 && <div>
               <h2 className="text-xl font-bold text-white">Driver Details</h2>
+              <p className="mt-2 text-sm text-slate-400">Use details that match your driver documents. Your saved profile details are filled where available.</p>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <input type="text" placeholder="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
                 <input type="tel" placeholder="Phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
@@ -176,22 +207,25 @@ export default function ApplyDriverPage() {
                 <input type="text" placeholder="Driver's license number" value={licenseNumber} onChange={(e) => setLicenseNumber(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
                 <textarea placeholder="Home address" value={address} onChange={(e) => setAddress(e.target.value)} required className="min-h-[120px] rounded-2xl border border-white/10 bg-white/10 px-4 py-4 text-white outline-none placeholder:text-slate-400 md:col-span-2" />
               </div>
-            </div>
+              <button type="button" onClick={continueFromDriverDetails} className="mt-6 h-14 w-full rounded-2xl bg-[#18c37e] font-bold text-[#04130c]">Continue to Vehicle Details</button>
+            </div>}
 
-            <div>
+            {step === 2 && <div>
               <h2 className="text-xl font-bold text-white">Vehicle Details</h2>
+              <p className="mt-2 text-sm text-slate-400">Enter the vehicle you intend to use for SharpSharp rides.</p>
               <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <input type="text" placeholder="Vehicle type (e.g. Sedan, SUV)" value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
+                <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-[#0b1d26] px-4 text-white outline-none"><option value="">Select vehicle type</option><option>Sedan</option><option>SUV</option><option>Hatchback</option><option>Minivan</option><option>Bus</option><option>Other</option></select>
                 <input type="text" placeholder="Vehicle brand" value={vehicleBrand} onChange={(e) => setVehicleBrand(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
                 <input type="text" placeholder="Vehicle model" value={vehicleModel} onChange={(e) => setVehicleModel(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
                 <input type="text" placeholder="Vehicle color" value={vehicleColor} onChange={(e) => setVehicleColor(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
                 <input type="text" placeholder="Plate number" value={plateNumber} onChange={(e) => setPlateNumber(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
-                <input type="number" min="1" placeholder="Number of seats" value={seatCount} onChange={(e) => setSeatCount(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
+                <select value={seatCount} onChange={(e) => setSeatCount(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-[#0b1d26] px-4 text-white outline-none"><option value="">Select passenger seats</option>{[1,2,3,4,5,6,7,8,9,10,12,14].map((count) => <option key={count} value={count}>{count} seats</option>)}</select>
 
                 <div className="rounded-2xl border border-white/10 bg-white/10 p-4 md:col-span-2">
                   <label className="block text-sm font-semibold text-white">
                     Upload vehicle image
                   </label>
+                  <p className="mt-1 text-xs text-slate-400">Use a clear exterior photo showing the vehicle condition.</p>
                   <input
                     type="file"
                     accept="image/*"
@@ -201,7 +235,17 @@ export default function ApplyDriverPage() {
                   />
                 </div>
               </div>
-            </div>
+              <div className="mt-6 flex gap-3"><button type="button" onClick={() => setStep(1)} className="h-14 flex-1 rounded-2xl border border-white/15 font-bold">Back</button><button type="button" onClick={continueFromVehicleDetails} className="h-14 flex-1 rounded-2xl bg-[#18c37e] font-bold text-[#04130c]">Review Application</button></div>
+            </div>}
+
+            {step === 3 && <div>
+              <h2 className="text-xl font-bold">Review Application</h2>
+              <p className="mt-2 text-sm text-slate-400">Check these details before submitting for admin review.</p>
+              <div className="mt-5 grid gap-3 md:grid-cols-2">
+                <Review label="Driver" value={fullName}/><Review label="Phone" value={phone}/><Review label="City" value={city}/><Review label="Vehicle" value={`${vehicleBrand} ${vehicleModel}`}/><Review label="Type / Color" value={`${vehicleType} / ${vehicleColor}`}/><Review label="Plate / Seats" value={`${plateNumber} / ${seatCount}`}/>
+              </div>
+              <div className="mt-6 flex gap-3"><button type="button" onClick={() => setStep(2)} className="h-14 flex-1 rounded-2xl border border-white/15 font-bold">Edit Details</button><button type="submit" disabled={submitting} className="h-14 flex-1 rounded-2xl bg-[#18c37e] font-bold text-[#04130c] disabled:opacity-70">{submitting ? "Submitting..." : "Submit Application"}</button></div>
+            </div>}
 
             {errorMessage && (
               <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
@@ -209,16 +253,13 @@ export default function ApplyDriverPage() {
               </div>
             )}
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="inline-flex h-14 w-full items-center justify-center rounded-2xl bg-[#18c37e] px-6 text-lg font-bold text-[#04130c] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {submitting ? "Submitting..." : "Submit Driver Application"}
-            </button>
           </form>
         </div>
       </div>
     </section>
   );
+}
+
+function Review({ label, value }: { label: string; value: string }) {
+  return <div className="rounded-2xl border border-white/10 bg-white/5 p-4"><p className="text-xs uppercase tracking-wider text-slate-400">{label}</p><p className="mt-1 font-bold">{value}</p></div>;
 }

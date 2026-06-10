@@ -178,6 +178,7 @@ export default function RideCreateForm({ userId }: { userId: string }) {
         )}
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div><h2 className="text-xl font-bold">Route and Schedule</h2><p className="mt-1 text-sm text-slate-400">Tell passengers where and when this ride leaves.</p></div>
           <div className="grid gap-4 md:grid-cols-2">
             <input
               required
@@ -229,18 +230,14 @@ export default function RideCreateForm({ userId }: { userId: string }) {
               }
             />
 
-            <input
+            <select
               required
-              type="number"
-              min="1"
-              max={driverApp?.seat_count || undefined}
-              placeholder="Available seats"
-              className="h-14 rounded-2xl bg-white/10 px-4 outline-none placeholder:text-slate-400"
+              className="h-14 rounded-2xl bg-[#0b1d26] px-4 outline-none"
               value={form.available_seats}
               onChange={(e) =>
                 setForm({ ...form, available_seats: e.target.value })
               }
-            />
+            ><option value="">Select available seats</option>{Array.from({ length: driverApp?.seat_count || 1 }, (_, index) => index + 1).map((seat) => <option key={seat} value={seat}>{seat} seat{seat === 1 ? "" : "s"}</option>)}</select>
 
             <input
               required
@@ -253,12 +250,7 @@ export default function RideCreateForm({ userId }: { userId: string }) {
             />
           </div>
 
-          <textarea
-            placeholder="Trip notes"
-            className="min-h-32 w-full rounded-2xl bg-white/10 p-4 outline-none placeholder:text-slate-400"
-            value={form.trip_notes}
-            onChange={(e) => setForm({ ...form, trip_notes: e.target.value })}
-          />
+          <details className="rounded-2xl border border-white/10 bg-white/5 p-4"><summary className="cursor-pointer font-bold">Add trip notes (optional)</summary><textarea placeholder="Luggage limits, meeting instructions, or useful details" className="mt-4 min-h-32 w-full rounded-2xl bg-white/10 p-4 outline-none placeholder:text-slate-400" value={form.trip_notes} onChange={(e) => setForm({ ...form, trip_notes: e.target.value })}/></details>
 
           <button
             disabled={loading || !driverApp}

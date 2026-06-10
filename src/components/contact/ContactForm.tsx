@@ -49,6 +49,7 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <p className="text-sm text-slate-400">Required fields are name, email, and message.</p>
       <div className="grid gap-4 sm:grid-cols-2">
         <input
           name="name"
@@ -67,12 +68,11 @@ export default function ContactForm() {
         />
       </div>
 
-      <input
+      <select
         name="subject"
-        type="text"
-        placeholder="Subject"
-        className="h-14 w-full rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none"
-      />
+        defaultValue=""
+        className="h-14 w-full rounded-2xl border border-white/10 bg-[#0b1d26] px-4 text-white outline-none"
+      ><option value="">Select a subject (optional)</option><option>Ride booking support</option><option>Driver application support</option><option>Rental enquiry</option><option>Delivery enquiry</option><option>Partnership</option><option>Other</option></select>
 
       <textarea
         name="message"
