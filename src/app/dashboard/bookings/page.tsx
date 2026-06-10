@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
 
 export default async function MyBookingsPage() {
   const supabase = await createClient();
@@ -26,6 +27,7 @@ export default async function MyBookingsPage() {
       completed_at,
       created_at,
       rides (
+        driver_id,
         from_city,
         to_city,
         travel_date,
@@ -36,6 +38,13 @@ export default async function MyBookingsPage() {
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
+
+  const { data: reviews } = await supabase
+    .from("ride_reviews")
+    .select("booking_id")
+    .eq("reviewer_id", user.id)
+    .eq("context", "driver");
+  const reviewedBookingIds = new Set((reviews || []).map((review) => review.booking_id));
 
   return (
     <section className="px-4 py-10 text-white sm:px-6 lg:px-12">
@@ -102,6 +111,12 @@ export default async function MyBookingsPage() {
                       }
                     />
                   </div>
+                  {booking.payment_status === "paid" &&
+                    booking.trip_status === "completed" &&
+                    ride?.driver_id &&
+                    !reviewedBookingIds.has(booking.id) && (
+                      <ReviewForm bookingId={booking.id} context="driver" label="Rate your driver" />
+                    )}
                 </div>
               );
             })}

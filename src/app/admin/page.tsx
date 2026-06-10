@@ -7,6 +7,7 @@ import {
   Route,
   ShieldCheck,
   Users,
+  Star,
 } from "lucide-react";
 import { requireAdminPage } from "@/lib/admin/requireAdmin";
 
@@ -77,6 +78,8 @@ export default async function AdminPage() {
             <AdminCard href="/admin/bookings" icon={<ClipboardList />} title="View Bookings & Revenue" />
             <AdminCard href="/admin/users" icon={<Users />} title="View Users" />
             <AdminCard href="/admin/drivers" icon={<Banknote />} title="View Drivers" />
+            <AdminCard href="/admin/rental-applications" icon={<Car />} title="Review Rental Vehicles" />
+            <AdminCard href="/admin/reviews" icon={<Star />} title="Moderate Reviews" />
           </div>
         </section>
 

@@ -353,3 +353,41 @@ export function tripCompletedTemplate({
     ),
   };
 }
+
+export function rentalApplicationTemplate({
+  name,
+  status,
+  vehicle,
+  note,
+}: {
+  name: string;
+  status: "submitted" | "approved" | "rejected";
+  vehicle: string;
+  note?: string | null;
+}) {
+  const titles = {
+    submitted: "Rental Vehicle Application Received",
+    approved: "Rental Vehicle Application Approved",
+    rejected: "Rental Vehicle Application Update",
+  };
+  const messages = {
+    submitted: `Your application to list <strong>${vehicle}</strong> has been received and is awaiting review.`,
+    approved: `Your application for <strong>${vehicle}</strong> has been approved and the vehicle is now published.`,
+    rejected: `Your application for <strong>${vehicle}</strong> was not approved at this time.`,
+  };
+
+  return {
+    subject: titles[status],
+    html: emailLayout(
+      titles[status],
+      `
+        <p style="font-size:16px;line-height:1.8;color:#334155;">Hello ${name},</p>
+        <p style="font-size:16px;line-height:1.8;color:#334155;">${messages[status]}</p>
+        ${note ? `<p style="font-size:14px;line-height:1.8;color:#64748b;">Admin note: ${note}</p>` : ""}
+        <div style="margin-top:30px;text-align:center;">
+          <a href="https://www.sharpsharpride.com/dashboard/rentals" style="display:inline-block;background:#18c37e;color:#04130c;padding:14px 28px;border-radius:999px;text-decoration:none;font-weight:700;">View Rental Applications</a>
+        </div>
+      `
+    ),
+  };
+}

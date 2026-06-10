@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Car, CheckCircle2, Route, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { completeTrip } from "@/app/actions/completeTrip";
+import { ReviewForm } from "@/components/reviews/ReviewForm";
 
 type DriverRide = {
   id: string;
@@ -60,7 +61,7 @@ export default async function DriverDashboardPage() {
 
   if (!application) redirect("/offer-a-ride");
 
-  const [{ data: ridesData }, { data: bookingsData }, { data: requestsData }] =
+  const [{ data: ridesData }, { data: bookingsData }, { data: requestsData }, { data: reviewsData }, { data: submittedReviews }] =
     await Promise.all([
       supabase
         .from("rides")
@@ -84,6 +85,17 @@ export default async function DriverDashboardPage() {
         .eq("assigned_driver_id", user.id)
         .eq("status", "assigned")
         .order("assigned_at", { ascending: false }),
+      supabase
+        .from("ride_reviews")
+        .select("rating")
+        .eq("reviewee_id", user.id)
+        .eq("context", "driver")
+        .eq("status", "published"),
+      supabase
+        .from("ride_reviews")
+        .select("booking_id")
+        .eq("reviewer_id", user.id)
+        .eq("context", "passenger"),
     ]);
 
   const rides = (ridesData || []) as DriverRide[];
@@ -98,6 +110,11 @@ export default async function DriverDashboardPage() {
       .filter((booking) => booking.payment_status === "paid" && booking.trip_status !== "completed")
       .map((booking) => booking.ride_id)
   );
+  const reviewedBookingIds = new Set((submittedReviews || []).map((review) => review.booking_id));
+  const completedTrips = new Set(bookings.filter((booking) => booking.trip_status === "completed").map((booking) => booking.ride_id)).size;
+  const averageRating = reviewsData?.length
+    ? (reviewsData.reduce((total, review) => total + Number(review.rating), 0) / reviewsData.length).toFixed(1)
+    : "New";
 
   return (
     <main className="min-h-screen bg-[#061116] px-4 py-10 text-white sm:px-6 lg:px-10">
@@ -134,6 +151,9 @@ export default async function DriverDashboardPage() {
             label="Assigned Requests"
             value={String(assignedRequests.length)}
           />
+          <StatCard label="Rating" value={averageRating} />
+          <StatCard label="Reviews" value={String(reviewsData?.length || 0)} />
+          <StatCard label="Completed Trips" value={String(completedTrips)} />
         </section>
 
         <section className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-6 md:p-8">
@@ -216,6 +236,11 @@ export default async function DriverDashboardPage() {
                 <Info label="Amount" value={`NGN ${booking.total_amount}`} />
                 <Info label="Ride ID" value={booking.ride_id.slice(0, 8)} />
               </div>
+              {booking.payment_status === "paid" &&
+                booking.trip_status === "completed" &&
+                !reviewedBookingIds.has(booking.id) && (
+                  <ReviewForm bookingId={booking.id} context="passenger" label="Rate this passenger" />
+                )}
             </div>
           ))}
         </DriverSection>

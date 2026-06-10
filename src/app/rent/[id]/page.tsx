@@ -127,10 +127,8 @@ export default async function RentDetailsPage({
   const vehicle = normalizeVehicle(data);
 
   const rentNowHref = user
-    ? `/checkout?service=rent&vehicleId=${vehicle.id}`
-    : `/login?next=${encodeURIComponent(
-        `/checkout?service=rent&vehicleId=${vehicle.id}`
-      )}`;
+    ? `/contact?subject=${encodeURIComponent(`Rental request: ${vehicle.title}`)}`
+    : `/login?next=${encodeURIComponent(`/rent/${vehicle.id}`)}`;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -254,7 +252,7 @@ export default async function RentDetailsPage({
                   href={rentNowHref}
                   className="inline-flex w-full items-center justify-center rounded-full bg-green-500 px-6 py-3 text-sm font-semibold text-[#08141b] hover:brightness-105"
                 >
-                  {user ? "Rent This Car" : "Login to Rent This Car"}
+                  {user ? "Request This Rental" : "Login to Request This Rental"}
                 </Link>
               </div>
             ) : (
