@@ -391,3 +391,35 @@ export function rentalApplicationTemplate({
     ),
   };
 }
+
+export function rentalBookingTemplate({
+  name,
+  audience,
+  status,
+  vehicle,
+  startDate,
+  endDate,
+  totalAmount,
+}: {
+  name: string;
+  audience: "renter" | "owner";
+  status: "confirmed" | "completed" | "cancelled";
+  vehicle: string;
+  startDate: string;
+  endDate: string;
+  totalAmount: number;
+}) {
+  const title = status === "confirmed" ? "Rental Booking Confirmed" : status === "completed" ? "Rental Booking Completed" : "Rental Booking Cancelled";
+  const message = audience === "owner"
+    ? `${vehicle} has a ${status} rental booking.`
+    : `Your rental booking for ${vehicle} is ${status}.`;
+  return {
+    subject: title,
+    html: emailLayout(title, `
+      <p style="font-size:16px;line-height:1.8;color:#334155;">Hello ${name},</p>
+      <p style="font-size:16px;line-height:1.8;color:#334155;">${message}</p>
+      <p style="font-size:14px;line-height:1.8;color:#64748b;">${startDate} to ${endDate} · NGN ${totalAmount.toLocaleString()}</p>
+      <div style="margin-top:30px;text-align:center;"><a href="https://www.sharpsharpride.com/dashboard/rentals" style="display:inline-block;background:#18c37e;color:#04130c;padding:14px 28px;border-radius:999px;text-decoration:none;font-weight:700;">View Rental Bookings</a></div>
+    `),
+  };
+}

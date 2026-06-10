@@ -79,6 +79,7 @@ export default async function AdminPage() {
             <AdminCard href="/admin/users" icon={<Users />} title="View Users" />
             <AdminCard href="/admin/drivers" icon={<Banknote />} title="View Drivers" />
             <AdminCard href="/admin/rental-applications" icon={<Car />} title="Review Rental Vehicles" />
+            <AdminCard href="/admin/rental-bookings" icon={<ClipboardList />} title="Rental Bookings" />
             <AdminCard href="/admin/reviews" icon={<Star />} title="Moderate Reviews" />
           </div>
         </section>

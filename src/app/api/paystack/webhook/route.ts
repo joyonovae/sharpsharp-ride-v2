@@ -4,6 +4,7 @@ import {
   BookingFinalizationError,
   finalizePaidRideBooking,
 } from "@/lib/paystack/finalizePaidRideBooking";
+import { finalizePaidRentalBooking } from "@/lib/paystack/finalizePaidRentalBooking";
 
 export const runtime = "nodejs";
 
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: false }, { status: 401 });
   }
 
-  let event: { event?: unknown; data?: { reference?: unknown } };
+  let event: { event?: unknown; data?: { reference?: unknown; metadata?: { type?: unknown } } };
 
   try {
     event = JSON.parse(rawBody);
@@ -53,7 +54,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const booking = await finalizePaidRideBooking({ reference });
+    const booking = event.data?.metadata?.type === "rental_booking"
+      ? await finalizePaidRentalBooking({ reference })
+      : await finalizePaidRideBooking({ reference });
     return NextResponse.json({
       received: true,
       bookingId: booking.bookingId,
