@@ -48,6 +48,17 @@ const slides = ["/hero/ride1.jpg", "/hero/ride2.jpg", "/hero/ride3.jpg"];
 export default function HomePage() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const heroActions = isLoggedIn
+    ? [
+        { label: "Book a Ride", href: "/rides" },
+        { label: "Offer a Ride", href: "/offer-a-ride" },
+        { label: "Rent a Car", href: "/rent" },
+      ]
+    : [
+        { label: "Get Started", href: "/signup" },
+        { label: "Offer a Ride", href: "/offer-a-ride" },
+        { label: "Browse Rides", href: "/rides" },
+      ];
 
   const [fromCity, setFromCity] = useState("");
   const [toCity, setToCity] = useState("");
@@ -180,26 +191,15 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-wrap justify-start gap-3">
-              <Link
-                href="/signup"
-                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
-              >
-                Get Started
-              </Link>
-
-              <Link
-                href="/offer-a-ride"
-                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
-              >
-                Offer a Ride
-              </Link>
-
-              <Link
-                href="/rides"
-                className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
-              >
-                Browse Rides
-              </Link>
+              {heroActions.map((action) => (
+                <Link
+                  key={action.label}
+                  href={action.href}
+                  className="rounded-full bg-[#061116] px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-1 hover:bg-emerald-600 sm:px-6"
+                >
+                  {action.label}
+                </Link>
+              ))}
             </div>
           </div>
 
