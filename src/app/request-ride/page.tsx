@@ -79,6 +79,13 @@ function RequestRideContent() {
     setError("");
     setLoading(true);
 
+    const passengerCount = Number(form.passenger_count);
+    if (!Number.isInteger(passengerCount) || passengerCount < 1) {
+      setLoading(false);
+      setError("Passenger count must be at least 1.");
+      return;
+    }
+
     const {
       data: { user },
       error: userError,
@@ -100,7 +107,7 @@ function RequestRideContent() {
         to_city: form.to_city,
         travel_date: form.travel_date,
         preferred_time: form.preferred_time,
-        passenger_count: Number(form.passenger_count),
+        passenger_count: passengerCount,
         pickup_point: form.pickup_point,
         dropoff_point: form.dropoff_point,
         trip_notes: form.trip_notes,
@@ -230,7 +237,7 @@ function RequestRideContent() {
                 required
               />
               <Select label="Preferred time (optional)" value={form.preferred_time} onChange={(v) => updateField("preferred_time", v)} options={["Morning", "Afternoon", "Evening", "Flexible"]}/>
-              <Select label="Passengers" value={form.passenger_count} onChange={(v) => updateField("passenger_count", v)} options={["1","2","3","4","5","6"]} required/>
+              <Input label="Passengers" type="number" min="1" value={form.passenger_count} onChange={(v) => updateField("passenger_count", v)} required/>
             </div>
 
             <details className="rounded-2xl border border-white/10 bg-white/5 p-4">
@@ -278,6 +285,7 @@ function Input({
       <input
         type={type}
         min={min}
+        step={type === "number" ? "1" : undefined}
         value={value}
         required={required}
         placeholder={placeholder}

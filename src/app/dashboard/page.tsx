@@ -445,16 +445,14 @@ export default async function DashboardPage() {
               <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
                 Passengers
               </label>
-              <select
+              <input
+                type="number"
+                min="1"
+                step="1"
                 name="passengers"
                 className="mt-3 w-full bg-transparent text-xl font-bold text-white outline-none"
-              >
-                {[1, 2, 3, 4, 5].map((count) => (
-                  <option key={count} value={count} className="bg-[#08141b]">
-                    {count} passenger{count > 1 ? "s" : ""}
-                  </option>
-                ))}
-              </select>
+                defaultValue="1"
+              />
             </div>
 
             <div className="flex flex-col gap-3">

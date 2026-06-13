@@ -88,8 +88,8 @@ export default function RideCreateForm({ userId }: { userId: string }) {
     const availableSeats = Number(form.available_seats);
     const approvedSeatCount = Number(driverApp.seat_count || 0);
 
-    if (!availableSeats || availableSeats < 1) {
-      setErrorMessage("Available seats must be at least 1.");
+    if (!Number.isInteger(availableSeats) || availableSeats < 1) {
+      setErrorMessage("Available seats must be a whole number of at least 1.");
       return;
     }
 
@@ -232,14 +232,19 @@ export default function RideCreateForm({ userId }: { userId: string }) {
               }
             />
 
-            <select
+            <input
+              type="number"
+              min="1"
+              max={driverApp?.seat_count || undefined}
+              step="1"
               required
               className="h-14 rounded-2xl bg-[#0b1d26] px-4 outline-none"
               value={form.available_seats}
               onChange={(e) =>
                 setForm({ ...form, available_seats: e.target.value })
               }
-            ><option value="">Select available seats</option>{Array.from({ length: driverApp?.seat_count || 1 }, (_, index) => index + 1).map((seat) => <option key={seat} value={seat}>{seat} seat{seat === 1 ? "" : "s"}</option>)}</select>
+              placeholder="Available seats"
+            />
 
             <input
               required

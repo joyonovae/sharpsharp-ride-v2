@@ -45,7 +45,7 @@ export async function submitRentalVehicleApplication(formData: FormData) {
     status: "pending",
   };
 
-  if (!payload.owner_name || !payload.phone || !payload.location || !payload.vehicle_type || !payload.brand || !payload.model || !payload.plate_number || payload.seats < 1 || payload.price_per_day <= 0) {
+  if (!payload.owner_name || !payload.phone || !payload.location || !payload.vehicle_type || !payload.brand || !payload.model || !payload.plate_number || !Number.isInteger(payload.seats) || payload.seats < 1 || payload.price_per_day <= 0) {
     throw new Error("Please complete all required fields");
   }
 

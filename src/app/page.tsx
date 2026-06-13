@@ -284,17 +284,14 @@ export default function HomePage() {
                   Passengers
                 </p>
 
-                <select
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
                   value={passengers}
                   onChange={(e) => setPassengers(e.target.value)}
                   className="mt-1 w-full bg-transparent text-lg font-bold text-slate-900 outline-none"
-                >
-                  {[1, 2, 3, 4, 5].map((count) => (
-                    <option key={count} value={count}>
-                      {count} passenger{count > 1 ? "s" : ""}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               <button

@@ -51,6 +51,10 @@ export default function ApplyDriverPage() {
       setErrorMessage("Complete the required vehicle details and upload an image.");
       return;
     }
+    if (!Number.isInteger(Number(seatCount)) || Number(seatCount) < 1) {
+      setErrorMessage("Passenger seats must be a whole number of at least 1.");
+      return;
+    }
     setErrorMessage("");
     setStep(3);
   }
@@ -230,7 +234,7 @@ export default function ApplyDriverPage() {
                 <input type="text" placeholder="Vehicle model" value={vehicleModel} onChange={(e) => setVehicleModel(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
                 <input type="text" placeholder="Vehicle color" value={vehicleColor} onChange={(e) => setVehicleColor(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
                 <input type="text" placeholder="Plate number" value={plateNumber} onChange={(e) => setPlateNumber(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-white/10 px-4 text-white outline-none placeholder:text-slate-400" />
-                <select value={seatCount} onChange={(e) => setSeatCount(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-[#0b1d26] px-4 text-white outline-none"><option value="">Select passenger seats</option>{[1,2,3,4,5,6,7,8,9,10,12,14].map((count) => <option key={count} value={count}>{count} seats</option>)}</select>
+                <input type="number" min="1" step="1" placeholder="Passenger seats" value={seatCount} onChange={(e) => setSeatCount(e.target.value)} required className="h-14 rounded-2xl border border-white/10 bg-[#0b1d26] px-4 text-white outline-none placeholder:text-slate-400" />
 
                 <div className="rounded-2xl border border-white/10 bg-white/10 p-4 md:col-span-2">
                   <label className="block text-sm font-semibold text-white">
