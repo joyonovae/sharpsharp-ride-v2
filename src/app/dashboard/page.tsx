@@ -621,10 +621,18 @@ export default async function DashboardPage() {
             {application?.status === "approved" ? (
               <>
                 <ActionCard
-                  href="/offer-a-ride/create"
+                  href={
+                    profile?.role === "admin"
+                      ? "/admin/rides/new"
+                      : "/offer-a-ride/create"
+                  }
                   icon={<Route className="h-6 w-6" />}
                   title="Offer a Ride"
-                  desc="Create a ride using your approved driver profile."
+                  desc={
+                    profile?.role === "admin"
+                      ? "Create an operational ride with an approved driver."
+                      : "Create a ride using your approved driver profile."
+                  }
                 />
                 <ActionCard
                   href="/dashboard/driver"
@@ -730,7 +738,11 @@ export default async function DashboardPage() {
                   Driver Dashboard
                 </Link>
                 <Link
-                  href="/offer-a-ride/create"
+                  href={
+                    profile?.role === "admin"
+                      ? "/admin/rides/new"
+                      : "/offer-a-ride/create"
+                  }
                   className="inline-flex justify-center rounded-full bg-emerald-500 px-7 py-4 font-bold text-[#04130c] transition hover:bg-emerald-400"
                 >
                   Create Ride

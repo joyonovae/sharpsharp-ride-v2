@@ -175,7 +175,7 @@ export default function Navbar() {
             Book Ride
           </NavLink>
 
-          <NavLink href="/offer-a-ride" pathname={pathname}>
+          <NavLink href={isAdmin ? "/admin/rides/new" : "/offer-a-ride"} pathname={pathname}>
             Offer Ride
           </NavLink>
 
@@ -306,7 +306,7 @@ export default function Navbar() {
               </MobileLink>
 
               <MobileLink
-                href="/offer-a-ride"
+                href={isAdmin ? "/admin/rides/new" : "/offer-a-ride"}
                 pathname={pathname}
                 onClick={closeMenus}
               >

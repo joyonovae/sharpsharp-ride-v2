@@ -30,8 +30,11 @@ export default async function OfferRideEntryPage() {
   const profileDriverStatus = profile?.driver_status;
   const applicationStatus = application?.status;
 
+  if (role === "admin") {
+    redirect("/admin/rides/new");
+  }
+
   const isApproved =
-    role === "admin" ||
     role === "driver" ||
     profileDriverStatus === "approved" ||
     applicationStatus === "approved";
