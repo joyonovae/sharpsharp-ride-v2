@@ -19,6 +19,10 @@ export default async function CreateRidePage() {
     .eq("id", user.id)
     .maybeSingle();
 
+  if (profile?.role === "admin") {
+    redirect("/admin/rides/new");
+  }
+
   const { data: application } = await supabase
     .from("driver_applications")
     .select("status")
@@ -28,8 +32,6 @@ export default async function CreateRidePage() {
     .maybeSingle();
 
   const isApproved =
-    profile?.account_status === "active" &&
-    profile?.role === "admin" ||
     profile?.role === "driver" ||
     profile?.driver_status === "approved" ||
     application?.status === "approved";
